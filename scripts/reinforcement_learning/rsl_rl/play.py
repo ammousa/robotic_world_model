@@ -9,8 +9,12 @@
 
 import argparse
 import sys
+from pathlib import Path
 
 from isaaclab.app import AppLauncher
+
+# the research workflow package (src/research_workflow) is plain Python: import it from this checkout
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 # local imports
 import cli_args  # isort: skip
@@ -31,6 +35,16 @@ parser.add_argument(
     help="Use the pre-trained checkpoint from Nucleus.",
 )
 parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
+parser.add_argument(
+    "--eval_output_dir",
+    type=str,
+    default=None,
+    help="Scored evaluation: simulate --num_episodes episodes per environment and write per-episode rows, "
+    "a summary and the run provenance here (see scripts/research_runs.py eval-jobs).",
+)
+parser.add_argument(
+    "--num_episodes", type=int, default=1, help="Episodes per environment to simulate with --eval_output_dir."
+)
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
@@ -51,6 +65,7 @@ simulation_app = app_launcher.app
 """Rest everything follows."""
 
 import gymnasium as gym
+import json
 import os
 import time
 import torch
@@ -76,6 +91,50 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 
 # PLACEHOLDER: Extension template (do not remove this comment)
 import mbrl.tasks  # noqa: F401
+
+
+def evaluate(env, env_cfg, agent_cfg, policy, obs, checkpoint, checkpoint_sha256, task_name):
+    """Simulate ``--num_episodes`` episodes per environment and write the scored evaluation artifacts."""
+    from research_workflow import launch_metadata, robot_asset_paths, runtime_fingerprint
+    from research_workflow.episode_recorder import EpisodeRecorder
+    from research_workflow.eval_results import aggregate_metrics, write_evaluation_artifacts
+    from research_workflow.run_config import git_state
+
+    base = env.unwrapped
+    recorder = EpisodeRecorder(base, seed=agent_cfg.seed)
+    num_steps = int(args_cli.num_episodes * base.max_episode_length)
+    print(f"[INFO]: Simulating {args_cli.num_episodes} episode(s) per environment ({num_steps} steps).")
+    for _ in range(num_steps):
+        with torch.inference_mode():
+            obs, rewards, dones, infos = env.step(policy(obs))
+        recorder.step(rewards, dones, infos.get("time_outs", torch.zeros_like(dones)))
+    run_info = {
+        "task": task_name,
+        "seed": agent_cfg.seed,
+        "checkpoint": checkpoint,
+        "checkpoint_sha256": checkpoint_sha256,
+        "num_envs": env_cfg.scene.num_envs,
+        "num_episodes_requested_per_env": args_cli.num_episodes,
+        "steps_simulated": num_steps,
+        "control_dt": base.step_dt,
+        "physics_dt": env_cfg.sim.dt,
+        "decimation": env_cfg.decimation,
+        "episode_length_s": env_cfg.episode_length_s,
+        "forced_terrain_level": None,
+        "requested_difficulty": None,
+        "git": git_state(__file__),
+        "research": launch_metadata(),
+        "runtime_fingerprint": runtime_fingerprint(
+            resolved_config={"agent": agent_cfg.to_dict(), "env": env_cfg.to_dict()},
+            asset_paths=robot_asset_paths(env_cfg),
+        ),
+    }
+    paths = write_evaluation_artifacts(recorder.rows, args_cli.eval_output_dir, run_info)
+    print("-------------- Per-episode aggregate metrics --------------")
+    print(f"seed: {agent_cfg.seed}")
+    print(json.dumps(aggregate_metrics(recorder.rows), indent=2))
+    for name, path in paths.items():
+        print(f"[INFO] Wrote {name}: {path}")
 
 
 @hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
@@ -106,6 +165,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         resume_path = get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
 
     log_dir = os.path.dirname(resume_path)
+    evaluating = args_cli.eval_output_dir is not None
 
     # create isaac environment
     env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
@@ -117,10 +177,14 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # wrap for video recording
     if args_cli.video:
         video_kwargs = {
-            "video_folder": os.path.join(log_dir, "videos", "play"),
+            "video_folder": os.path.join(args_cli.eval_output_dir, "videos")
+            if evaluating
+            else os.path.join(log_dir, "videos", "play"),
             "step_trigger": lambda step: step == 0,
             "video_length": args_cli.video_length,
             "disable_logger": True,
+            # --note names the scored video of an evaluation cell
+            **({"name_prefix": args_cli.note} if args_cli.note else {}),
         }
         print("[INFO] Recording videos during training.")
         print_dict(video_kwargs, nesting=4)
@@ -130,6 +194,9 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+    from research_workflow import checkpoint_digest
+
+    evaluated_checkpoint_sha256 = checkpoint_digest(resume_path)
     # load previously trained model
     if agent_cfg.class_name == "OnPolicyRunner":
         runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
@@ -138,6 +205,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     else:
         raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
     runner.load(resume_path)
+    if checkpoint_digest(resume_path) != evaluated_checkpoint_sha256:
+        raise RuntimeError("checkpoint changed while loading the evaluation policy")
 
     # obtain the trained policy for inference
     policy = runner.get_inference_policy(device=env.unwrapped.device)
@@ -147,6 +216,11 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # reset environment
     obs = env.get_observations()
     timestep = 0
+    if evaluating:
+        evaluate(env, env_cfg, agent_cfg, policy, obs, resume_path, evaluated_checkpoint_sha256, task_name)
+        env.close()
+        return
+
     # simulate environment
     while simulation_app.is_running():
         start_time = time.time()

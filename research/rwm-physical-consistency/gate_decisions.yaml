@@ -1,0 +1,40 @@
+- gate: A
+  actor: user
+  verdict: approve
+  reason: The user explicitly approved the reviewed hypothesis and requested unattended
+    continuation. Implementation review and compute authorization remain separate
+    gates.
+  risk: Complete unattended permissions and accounting limits before delegated gate
+    decisions or launches.
+  next_action: Confirm the unattended mandate, update workflow authority, and renew
+    Gate A with the independent researcher.
+  evidence:
+  - research/rwm-physical-consistency/hypothesis.yaml
+  subjects:
+    hypothesis_id: h-5eede82a7c13bff7ef8d2c9f
+  workflow_id: w-4d1991baa2b046a734555bec
+  mode: attended
+  at: '2026-10-20T20:23:11.462603+00:00'
+  receipt_id: r-c8f38c3752cc72449ab1e005
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The falsifiable comparison preserves accuracy thresholds, baseline, gradients
+    and constraints. Revised replication matches the authorized two-seed mandate,
+    separates descriptive engineering success from inconclusive population support,
+    and does not authorize compute.
+  risk: Two training seeds cannot establish population generalization; runtime feasibility
+    and complete GPU-hour enforcement remain unverified until Gate C.
+  next_action: Correct the stale control checkpoint count, implement within scope,
+    and submit actual source, resolved settings and verification for independent Gate
+    B.
+  evidence:
+  - research/rwm-physical-consistency/hypothesis.yaml
+  - research/rwm-physical-consistency/workflow.yaml
+  - research/rwm-physical-consistency/experiment_design.yaml
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+  workflow_id: w-cc752bb2d7fd469a014ba9e3
+  mode: unattended
+  at: '2026-10-20T20:26:37.349309+00:00'
+  receipt_id: r-431cf3b2f3839791a5cc573e

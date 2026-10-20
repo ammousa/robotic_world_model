@@ -1,0 +1,82 @@
+inspection_date: '2026-10-20'
+repository_head: 14dbfe9da3f2246448cccee2873b9817603d5ae5
+rsl_rl_head: 18eebcdd7145284c8d5eed5d8ed1a4b96c649693-dirty
+isaaclab_head: 3c6e67bb5c7ada942a6d1884ab69338f57596f77
+files:
+  model_head:
+    path: ../rsl_rl_rwm/rsl_rl/modules/architectures/mlp.py
+    sha256: a18d6ca6343ab65f477be39e4478c63b0e2cd3744259dc1c1db2ce3cbf8e4dc1
+  recurrent_memory:
+    path: ../rsl_rl_rwm/rsl_rl/modules/architectures/rnn.py
+    sha256: 6c6b4c55ae8ef2acae73aaeaaf83031718643170c4353d47bf4f90a63c019b74
+  model:
+    path: ../rsl_rl_rwm/rsl_rl/modules/system_dynamics.py
+    sha256: bb966cb61f70329e3884852fcae3706b64ff06a6f2a500170bee73a55d7b5659
+  algorithm:
+    path: ../rsl_rl_rwm/rsl_rl/algorithms/mbpo_ppo.py
+    sha256: 72e92efed484c1a08cea065e233f0ac99899dc699a6bc4d401b86c2045404d08
+  runner:
+    path: ../rsl_rl_rwm/rsl_rl/runners/mbpo_on_policy_runner.py
+    sha256: 3b22559b9665b790d1bd931c450e7f8a32535d75caf2859f8276dfe1c5c37df7
+  state_config:
+    path: source/mbrl/mbrl/tasks/manager_based/locomotion/velocity/config/anymal_d/flat_env_cfg.py
+    sha256: 22cb139297cb65585e55fac14299e23b3da1c2628dec3d6ef189407f4d050c7d
+  agent_config:
+    path: source/mbrl/mbrl/tasks/manager_based/locomotion/velocity/config/anymal_d/agents/rsl_rl_ppo_cfg.py
+    sha256: a427836bbbb67a929c961d1ccffe3e72bfab66ce66079db803746bc2a864d92e
+  visualization:
+    path: source/mbrl/mbrl/mbrl/envs/manager_based_visualize_env.py
+    sha256: 355d3f61894d4bf915862161ec9f4bb2747dc675601a28fd9cf3d0d6219c9ffe
+  isaac_articulation:
+    path: ../IsaacLab/source/isaaclab/isaaclab/assets/articulation/articulation_data.py
+    sha256: bfe53518d1c511455b3538dcee487845ccfe1b62ddbd9c2cd92794137d390994
+papers:
+  rwm:
+    url: https://arxiv.org/pdf/2501.10100
+    sha256: 613d81eb472e437a76447f408f46ddeb0d786da29fae81e66089db1bfb1b7a14
+  rwmu:
+    url: https://arxiv.org/pdf/2504.16680
+    sha256: b0906b92791f4bf4c1b0758c1a53ce1ab1fb62baee1e556995b34c8fb7e74ddb
+  mosim:
+    url: https://openaccess.thecvf.com/content/CVPR2025/papers/Hao_Neural_Motion_Simulator_Pushing_the_Limit_of_World_Models_in_CVPR_2025_paper.pdf
+    sha256: 7e5265ba41c2dc2757917b071bded316b93b6dd754485fa965f7b92a3fe9f402
+  ssrl:
+    url: https://raw.githubusercontent.com/mlresearch/v270/main/assets/levy25a/levy25a.pdf
+    sha256: 4dad658c6c7661f02d4051c674abfcfa2fc63399f676295d302d909dd1c9782e
+  nerd:
+    url: https://raw.githubusercontent.com/mlresearch/v305/main/assets/xu25g/xu25g.pdf
+    sha256: 78e1f81d6bb0fc3191638671ea02e298b24d8c0afd776906e4d7fa082d4bcd76
+  delan:
+    url: https://arxiv.org/pdf/1907.04490
+    sha256: 03ddf815bfc368ea2930f4ab0843d3d7798230980a4262f329a1b38f04bd4bd5
+  gns:
+    url: https://proceedings.mlr.press/v119/sanchez-gonzalez20a/sanchez-gonzalez20a.pdf
+    sha256: 85b52bea0da38cf5d41b77031794a91e9d5d9b43e64b95c00e14b66e306a5d53
+  lie:
+    url: https://link.springer.com/article/10.1007/s11044-024-09970-8
+    access: full HTML including numerical benchmarks and conclusions; PDF endpoint
+      returned HTML
+candidate_checkpoint:
+  path: logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+  finite_model_tensors: true
+  world_model_parameters: 1417789
+prior_report:
+  id: VmlldzoxODE1MDk2MQ
+  readback_blocks: 47
+  title: Robotic World Model on ANYmal D - RWM, RWM-U and MBPO-MOPO-PPO reproduction
+    and analysis
+  unchanged: true
+findings:
+- finding: Residual state prediction is already implemented
+  source: ../rsl_rl_rwm/rsl_rl/modules/architectures/mlp.py:88
+- finding: Default regression objective is sampled MSE, not Gaussian NLL
+  source: ../rsl_rl_rwm/rsl_rl/modules/system_dynamics.py:270
+- finding: Training uses arrival-action index offset +1; legacy autoregressive scorer
+    does not
+  source: ../rsl_rl_rwm/rsl_rl/modules/system_dynamics.py:202; ../rsl_rl_rwm/rsl_rl/algorithms/mbpo_ppo.py:285
+- finding: Legacy visualization advances PhysX after imposing model joints/velocities
+  source: source/mbrl/mbrl/mbrl/envs/manager_based_visualize_env.py:73
+- finding: Root pose aliases link pose while root linear velocity aliases COM velocity
+  source: ../IsaacLab/source/isaaclab/isaaclab/assets/articulation/articulation_data.py:981
+- finding: Original base-contact label is not a complete reset or timeout marker
+  source: source/mbrl/mbrl/tasks/manager_based/locomotion/velocity/config/anymal_d/flat_env_cfg.py:131

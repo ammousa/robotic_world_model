@@ -83,3 +83,8 @@ reportMissingModuleSource = "none" # -> most common: prettytable in mdp managers
 reportGeneralTypeIssues = "none"       # -> raises 218 errors (usage of literal MISSING in dataclasses)
 reportOptionalMemberAccess = "warning" # -> raises 8 errors
 reportPrivateUsage = "warning"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# research_workflow (src/) is plain Python and importable without Isaac Lab
+pythonpath = ["src"]

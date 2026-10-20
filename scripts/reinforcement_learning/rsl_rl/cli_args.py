@@ -31,6 +31,17 @@ def add_rsl_rl_args(parser: argparse.ArgumentParser):
     arg_group.add_argument(
         "--log_project_name", type=str, default=None, help="Name of the logging project when using wandb or neptune."
     )
+    # -- research workflow (scripts/research_runs.py builds these; see AGENTS.md)
+    arg_group.add_argument("--note", type=str, default=None, help="Note for the run, sent to wandb.")
+    arg_group.add_argument("--group", type=str, default=None, help="wandb group: one per research comparison.")
+    arg_group.add_argument("--job_type", type=str, default=None, help="wandb job type, e.g. train or smoke.")
+    arg_group.add_argument(
+        "--wandb_tags",
+        type=str,
+        nargs="*",
+        default=None,
+        help="wandb tags, e.g. variant:<name> seed:<n> task:<id> (see AGENTS.md).",
+    )
 
 
 def parse_rsl_rl_cfg(task_name: str, args_cli: argparse.Namespace) -> RslRlOnPolicyRunnerCfg:

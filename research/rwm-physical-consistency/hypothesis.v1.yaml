@@ -1,0 +1,110 @@
+schema_version: 1
+group: rwm-physical-consistency
+hypothesis_version: 1
+title: Kinematic consistency in a frozen-policy ANYmal-D recurrent world model
+claim: >-
+  On matched frozen-policy ANYmal-D data, orientation and joint integration can
+  reduce held-out two-second physical trajectory error by at least 20 percent
+  relative to the reproduced residual-state RWM, without materially worsening
+  short-horizon or joint-state accuracy, autonomous behaviour, or real-time inference.
+mechanism: >-
+  Reconstruct projected gravity from integrated angular velocity and joint positions
+  from predicted joint velocities, feeding the reconstructed state back through the
+  existing GRU. Test whether reduced representational freedom helps ground-truth
+  prediction rather than merely eliminating an internal consistency diagnostic.
+changes:
+  - B1 versus B0 replaces the independent gravity output with SO(3) integration.
+  - B2 versus B1 additionally integrates joint positions from next joint velocities.
+  - E3 compares B2 residual velocities with an absolute-next-velocity head.
+  - B3 acceleration is a matched reparameterization control at fixed dt, not a new physical mechanism.
+held_fixed:
+  - ANYmal-D flat terrain, 50 Hz, one frozen policy checkpoint, no policy updates.
+  - Identical immutable trajectories, split IDs, commands, action semantics and normalizers.
+  - Separate state and auxiliary GRU backbones, each two layers of 256 units, 128-unit heads.
+  - One ensemble member, history 32, forecast 8, matched batches and optimizer-update budgets.
+  - Common reconstructed physical-state training loss and common physical-unit evaluation.
+  - Identical pose integration for scoring, independent of rendering and simulator physics.
+inputs:
+  deployable:
+    - Historical body-frame root-COM linear velocity and angular velocity.
+    - Historical unit projected gravity, relative joint positions/velocities and actuator torques.
+    - Raw joint-position actions and recurrent memory; commands enter the frozen policy.
+    - Orientation initialized from measured gravity with local yaw zero; local translation zero.
+    - Fixed robot geometry and nominal COM offset are model metadata, not privileged observations.
+  privileged:
+    - Simulator poses and contacts are labels and evaluation references only.
+    - True reset/timeout flags determine dataset boundaries, never imagined corrections.
+    - No future pose, contacts, forces, terrain scan, actuator hidden state or randomized physics input.
+gradient_ownership: >-
+  Only world-model parameters train. Gradients pass through reconstruction and all
+  eight autoregressive steps, with no hidden-state detach inside a window. Policy,
+  data, normalization constants and initial history are frozen. Auxiliary supervision
+  remains on its separate teacher-forced recurrent backbone in every variant.
+baselines:
+  - B0 is the reproduced residual-state model, not an absolute-next-state model.
+  - B0_visual integrates pose for scoring/rendering without changing recurrent or policy inputs.
+  - B1 and B2 supply the incremental baselines for E2 and E3.
+primary_metric:
+  name: recorded_action_physical_trajectory_nrmse_2s
+  direction: lower
+  unit: dimensionless, six equally weighted physical-state blocks with fixed SI scales
+secondary_metrics:
+  - recorded_action_physical_trajectory_nrmse_1_2_5s_mean
+  - base_com_translation_rmse_m
+  - orientation_geodesic_rmse_rad
+  - body_linear_velocity_rmse_m_per_s
+  - body_angular_velocity_rmse_rad_per_s
+  - joint_position_rmse_rad
+  - joint_velocity_rmse_rad_per_s
+  - autonomous_closed_loop_outcome_discrepancy
+  - autonomous_action_shadow_physical_trajectory_nrmse_2s
+  - stable_rollout_duration_s
+  - constraint_violation_curves_and_failure_rates
+  - batch1_policy_plus_model_latency_p95_ms
+constraints:
+  - At most 5 percent relative degradation in the 0.2-second primary physical score.
+  - At most 5 percent degradation in joint-position and joint-velocity RMSE at 1, 2 and 5 seconds.
+  - At most 2 percentage points increase in 30-second unstable-rollout fraction.
+  - At most 10 percent increase in autonomous command-tracking RMSE.
+  - At most 20 percent batch-one model latency overhead and policy-plus-model p95 below 20 ms.
+minimum_meaningful_effect:
+  relative_reduction_2s: 0.20
+  relative_reduction_mean_1_2_5s: 0.15
+  unit: fraction of matched B0 error, averaged with equal training-seed weight
+evaluation_unit: >-
+  One predeclared episode fork per held-out environment and command schedule,
+  averaged first within a training seed; the training seed is the replication unit.
+paired_factors: [training_seed, evaluation_partition, episode_id, fork_step, command_schedule_id]
+anticipated_confounders:
+  - Existing training and legacy evaluation action indexing differ by one control step.
+  - The legacy visualization advances PhysX after writing imagined states and velocities.
+  - The original head already adds a learned residual to every normalized state coordinate.
+  - Acceleration and velocity residuals are algebraically equivalent at a fixed timestep with matched scaling.
+  - Root velocity is root-COM velocity, whereas root pose is the root-link pose.
+  - Gravity has no yaw information; root height is also absent from the model state.
+  - Sample-based state MSE is not Gaussian NLL; constraints make full-state covariance singular.
+  - Base-contact labels do not encode all resets or timeouts; never join episodes using only that label.
+  - More restrictive integration can amplify biased velocities and coarse-step contact errors.
+  - Divergent frozen-policy actions change the meaning of closed-loop trajectory comparisons.
+support_if:
+  - The predeclared B2 versus B0 ID-test effect meets both meaningful-effect thresholds and all constraints.
+  - At least four of five independent training seeds improve and the seed-paired 95 percent interval excludes zero improvement.
+  - Autonomous-action shadow evaluation improves two-second physical error by at least 15 percent with no behavioural constraint failure.
+  - E1 and E2 ground-truth component effects and every negative result are reported separately.
+contradict_if:
+  - Complete valid evidence shows worse ground-truth physical prediction or a failed constraint.
+  - Only internal consistency or rendering improves while ground-truth prediction fails the meaningful-effect thresholds.
+inconclusive_if:
+  - Seed variability or the confidence interval prevents resolving the meaningful effect.
+  - Fewer than five valid seed pairs exist; show raw effects and withhold repository aggregate confidence intervals.
+  - Matched provenance, action timing, reset boundaries, reference coverage or simulator-free rendering cannot be verified.
+checkpoint_export_impact: >-
+  Frozen policy weights and its 48-dimensional observation interface stay unchanged.
+  Structured dynamics require versioned metadata, independent-output heads and explicit
+  orientation/joint integrator state; they are not drop-in compatible with original
+  dynamics checkpoints. Loading/migration belongs at the checkpoint boundary.
+notes: >-
+  All new scientific thresholds, data counts, seed IDs and budgets are ASSUMPTION
+  proposals awaiting Gate A and later exact Gate C approval. No hypothesis approval,
+  implementation approval or compute authorization is asserted. Detailed design is in
+  experiment_design.yaml; the W&B Report carries the literature review and narrative.

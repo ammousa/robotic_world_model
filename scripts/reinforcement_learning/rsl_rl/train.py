@@ -9,8 +9,12 @@
 
 import argparse
 import sys
+from pathlib import Path
 
 from isaaclab.app import AppLauncher
+
+# the research workflow package (src/research_workflow) is plain Python: import it from this checkout
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 # local imports
 import cli_args  # isort: skip
@@ -70,6 +74,7 @@ if args_cli.distributed and version.parse(installed_version) < version.parse(RSL
 """Rest everything follows."""
 
 import gymnasium as gym
+import json
 import os
 import torch
 from datetime import datetime
@@ -165,15 +170,41 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     # create runner from rsl-rl
-    if agent_cfg.class_name == "OnPolicyRunner":
-        runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
-    elif agent_cfg.class_name == "DistillationRunner":
-        runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
-    elif agent_cfg.class_name == "MBPOOnPolicyRunner":
+    if agent_cfg.class_name == "MBPOOnPolicyRunner":
         agent_cfg.system_dynamics_load_path = args_cli.system_dynamics_load_path if args_cli.system_dynamics_load_path is not None else agent_cfg.system_dynamics_load_path
-        runner = MBPOOnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+    runner_cfg = agent_cfg.to_dict()
+    # research workflow: the run's identity and runtime fingerprint (see AGENTS.md)
+    from research_workflow import launch_metadata, robot_asset_paths, runtime_fingerprint
+    from research_workflow.run_config import research_config
+    from research_workflow.training_stream import attach_metric_stream
+    from research_workflow.verification import verify_retry
+
+    if agent_cfg.logger == "wandb" and args_cli.wandb_tags:
+        # Stored by rsl_rl_rwm under the W&B config's runner_cfg, so reports can group runs by variant.
+        runner_cfg["research"] = research_config(
+            args_cli.wandb_tags, group=args_cli.group, job_type=args_cli.job_type,
+            run_name=args_cli.run_name, task=args_cli.task, source_path=__file__,
+        )  # fmt: skip
+    fingerprint = runtime_fingerprint(
+        resolved_config={"agent": agent_cfg.to_dict(), "env": env_cfg.to_dict()},
+        asset_paths=robot_asset_paths(env_cfg),
+    )
+    verified_metadata = verify_retry(launch_metadata(), fingerprint)
+    provenance = {**verified_metadata, "runtime_fingerprint": fingerprint, "run_dir": str(Path(log_dir).resolve())}
+    Path(log_dir).mkdir(parents=True, exist_ok=True)
+    (Path(log_dir) / "research_provenance.json").write_text(json.dumps(provenance, indent=2))
+    if "research" in runner_cfg:
+        runner_cfg["research"].update(verified_metadata, runtime_fingerprint=fingerprint, run_dir=provenance["run_dir"])
+    if agent_cfg.class_name == "OnPolicyRunner":
+        runner = OnPolicyRunner(env, runner_cfg, log_dir=log_dir, device=agent_cfg.device)
+    elif agent_cfg.class_name == "DistillationRunner":
+        runner = DistillationRunner(env, runner_cfg, log_dir=log_dir, device=agent_cfg.device)
+    elif agent_cfg.class_name == "MBPOOnPolicyRunner":
+        runner = MBPOOnPolicyRunner(env, runner_cfg, log_dir=log_dir, device=agent_cfg.device)
     else:
         raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
+    # finite loss/reward/std stream that `research_runs.py check-train` and the smoke gate read
+    attach_metric_stream(runner, log_dir)
     # write git state to logs
     runner.add_git_repo_to_log(__file__)
     # load the checkpoint
@@ -185,6 +216,18 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # dump the configuration into log-directory
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
+
+    # optional wandb run metadata via environment variables: wandb.init() (called inside runner.learn())
+    # falls back to WANDB_NOTES/WANDB_RUN_GROUP/WANDB_JOB_TYPE/WANDB_TAGS, so set them before it runs
+    if agent_cfg.logger == "wandb":
+        if args_cli.note:
+            os.environ["WANDB_NOTES"] = args_cli.note
+        if args_cli.group:
+            os.environ["WANDB_RUN_GROUP"] = args_cli.group
+        if args_cli.job_type:
+            os.environ["WANDB_JOB_TYPE"] = args_cli.job_type
+        if args_cli.wandb_tags:
+            os.environ["WANDB_TAGS"] = ",".join(args_cli.wandb_tags)
 
     # run training
     runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)

@@ -67,8 +67,10 @@ _build
 # Teleop Recorded Dataset
 datasets
 
-# Tests
-tests/
+# Tests (upstream keeps none; the research workflow's own tests and fixture are tracked)
+tests/*
+!tests/test_research_*.py
+!tests/research_contract_examples.yaml
 
 # Docker history
 .isaac-lab-docker-history

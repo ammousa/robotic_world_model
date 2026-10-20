@@ -89,3 +89,28 @@
   mode: unattended
   at: '2026-10-20T21:23:37.018413+00:00'
   receipt_id: r-c36202631660fd28becef59c
+- gate: C
+  actor: researcher
+  verdict: reject
+  reason: The assembler rejects validation because its derived terrain population
+    count differs from training. This technical source defect requires a new reviewed
+    implementation/protocol pair, which max_followups=0 does not authorize.
+  risk: Raw trajectories may be reusable, but no trained-model comparison exists.
+    This failure provides no evidence against the scientific hypothesis.
+  next_action: Preserve collection and assembly failure; prepare a CPU-only repair
+    proposal, then obtain user authority before renewed gates or further execution.
+  evidence:
+  - src/world_modeling/dataset.py
+  - logs/queue/rwm-physical-consistency/collection_parts/collect-validation-0.json
+  - research/rwm-physical-consistency/workflow.yaml
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-17e995d30c019a5162902e1e
+    protocol_id: p-36884b9f4ff356725923c7b6
+    prior_receipts:
+      A: r-431cf3b2f3839791a5cc573e
+      B: r-eb5d85c2780a472a90822ec9
+  workflow_id: w-cc752bb2d7fd469a014ba9e3
+  mode: unattended
+  at: '2026-10-20T21:43:26.513702+00:00'
+  receipt_id: r-275c241499dbe79ab5aa2061

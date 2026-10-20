@@ -98,7 +98,13 @@ def checkpoint_problems(path):
             return ["checkpoint is not a model-state mapping"]
         states = [
             checkpoint[k]
-            for k in ("model_state_dict", "actor_state_dict", "policy_state_dict", "state_dict")
+            for k in (
+                "model_state_dict",
+                "actor_state_dict",
+                "policy_state_dict",
+                "state_dict",
+                "system_dynamics_state_dict",
+            )
             if k in checkpoint
         ]
         if not states or not all(isinstance(s, dict) and s for s in states):
@@ -159,7 +165,7 @@ def metric_reducer_specs(evaluation):
 
 def required_metric_keys(evaluation):
     """Primary + secondary + required metric keys, in declaration order, deduplicated."""
-    return list(
+    keys = list(
         dict.fromkeys(
             [
                 evaluation["primary_metric"]["name"],
@@ -168,6 +174,9 @@ def required_metric_keys(evaluation):
             ]
         )
     )
+    if evaluation.get("profile") == "world_model":
+        keys = [key for key in keys if key not in evaluation.get("artifact_metrics", {})]
+    return keys
 
 
 def declared_metric_reducers(evaluation):
@@ -177,6 +186,24 @@ def declared_metric_reducers(evaluation):
 
 
 def validate_reducers(evaluation):
+    artifacts = evaluation.get("artifact_metrics", {})
+    if artifacts:
+        if evaluation.get("profile") != "world_model" or not isinstance(artifacts, dict):
+            raise ValueError("artifact metrics require the explicit world-model profile")
+        declared = {evaluation["primary_metric"]["name"], *evaluation["secondary_metrics"]}
+        for name, spec in artifacts.items():
+            if name not in declared or not isinstance(spec, dict) or set(spec) != {"source", "columns", "selection"}:
+                raise ValueError("artifact metric needs its exact source, columns and selection")
+            if (
+                spec["source"] not in {"scored_rows.json", "provenance.json"}
+                or not isinstance(spec["columns"], list)
+                or not spec["columns"]
+            ):
+                raise ValueError("unsupported world-model artifact metric")
+            if not all(isinstance(column, str) and column for column in spec["columns"]) or not isinstance(
+                spec["selection"], dict
+            ):
+                raise ValueError("invalid world-model artifact metric columns/selection")
     reducers = evaluation.get("metric_reducers", {})
     if not isinstance(reducers, dict):
         raise ValueError("metric_reducers must be a mapping")

@@ -11,6 +11,15 @@ import argparse
 import sys
 from pathlib import Path
 
+# A fixed-data dynamics update has no simulator or policy-training dependency.
+# Keep train.py as the real entry point used by the repository's launch tooling.
+if any(value.split("=", 1)[0] == "--world_model_dataset" for value in sys.argv[1:]):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+    from world_modeling.train import main as train_dynamics
+
+    train_dynamics(sys.argv[1:])
+    raise SystemExit(0)
+
 from isaaclab.app import AppLauncher
 
 # the research workflow package (src/research_workflow) is plain Python: import it from this checkout
@@ -79,8 +88,9 @@ import os
 import torch
 from datetime import datetime
 
-from rsl_rl.runners import OnPolicyRunner, MBPOOnPolicyRunner
+from rsl_rl.runners import DistillationRunner, MBPOOnPolicyRunner, OnPolicyRunner
 
+import isaaclab_tasks  # noqa: F401
 from isaaclab.envs import (
     DirectMARLEnv,
     DirectMARLEnvCfg,
@@ -90,10 +100,7 @@ from isaaclab.envs import (
 )
 from isaaclab.utils.dict import print_dict
 from isaaclab.utils.io import dump_yaml
-
 from isaaclab_rl.rsl_rl import RslRlBaseRunnerCfg, RslRlVecEnvWrapper
-
-import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
@@ -171,7 +178,11 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     # create runner from rsl-rl
     if agent_cfg.class_name == "MBPOOnPolicyRunner":
-        agent_cfg.system_dynamics_load_path = args_cli.system_dynamics_load_path if args_cli.system_dynamics_load_path is not None else agent_cfg.system_dynamics_load_path
+        agent_cfg.system_dynamics_load_path = (
+            args_cli.system_dynamics_load_path
+            if args_cli.system_dynamics_load_path is not None
+            else agent_cfg.system_dynamics_load_path
+        )
     runner_cfg = agent_cfg.to_dict()
     # research workflow: the run's identity and runtime fingerprint (see AGENTS.md)
     from research_workflow import launch_metadata, robot_asset_paths, runtime_fingerprint

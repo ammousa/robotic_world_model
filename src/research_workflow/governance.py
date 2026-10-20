@@ -92,6 +92,7 @@ def implementation_id(root: Path, directory: Path) -> str:
                 "--exclude-standard",
                 "--",
                 "src",
+                "source",
                 "configs",
                 "scripts",
                 "tests",

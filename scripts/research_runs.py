@@ -705,7 +705,8 @@ def pin_launch(group: str, kind: str, *, push: bool = True, root: Path | None = 
     if _git(root, "tag", tag) is None:
         raise SystemExit(f"could not create git tag {tag}")
     if push:
-        out = subprocess.run(["git", "push", "origin", agent_branch(group), tag], cwd=root, capture_output=True,
+        remote = os.environ.get("RESEARCH_PUSH_REMOTE", "origin")
+        out = subprocess.run(["git", "push", remote, agent_branch(group), tag], cwd=root, capture_output=True,
                              text=True, check=False)  # fmt: skip
         if out.returncode != 0:
             raise SystemExit(f"git push failed; nothing launched (tag {tag} kept locally):\n{out.stderr.strip()}")
@@ -722,6 +723,8 @@ def source_env(root: Path | None = None, base: dict | None = None) -> dict:
     """Children import ``mbrl`` and ``research_workflow`` from this checkout, not from the editable install."""
     env = dict(os.environ if base is None else base)
     env["PYTHONPATH"] = os.pathsep.join(p for p in (*map(str, source_paths(root)), env.get("PYTHONPATH", "")) if p)
+    if env.get("RSL_RL_REPOSITORY"):
+        env["PYTHONPATH"] = env["RSL_RL_REPOSITORY"] + os.pathsep + env["PYTHONPATH"]
     env["PYTHONUNBUFFERED"] = "1"
     return env
 
@@ -810,7 +813,12 @@ def run_queue(
     occupancy: Callable[[], set[int] | None] = foreign_gpu_use,
     env: dict | None = None,
     launch_tag: str | None = None,
+    gpu_budget: dict | None = None,
 ) -> int:
+    if not gpu_budget and any(
+        job.get("research", {}).get("protocol_contract", {}).get("domain") == "world_model" for job in jobs
+    ):
+        raise ValueError("world-model queues require the approved cumulative GPU-hour limiter")
     log_dir.mkdir(parents=True, exist_ok=True)
     launched = {e["name"] for e in read_events(log_dir) if e.get("event") == "start"}
     again = sorted(launched & {j["name"] for j in jobs})
@@ -855,6 +863,13 @@ def run_queue(
                         raise ValueError("source changed while queued; pending scientific jobs not launched")
                 if job.get("research", {}).get("job_type") in {"train", "smoke"}:
                     verify_retry(job["research"], {"commit": source.get("commit")}, source_only=True)
+                argv = substitute_gpu(job["argv"], gpu)
+                if gpu_budget:
+                    from research_workflow.gpu_budget import timeout_argv
+
+                    argv = timeout_argv(
+                        argv, gpu_budget["log_root"], gpu, gpu_budget["hours_per_gpu"], gpu_budget["max_job_seconds"]
+                    )
             except (ValueError, OSError) as error:
                 dispatch_error = str(error)
                 _event(
@@ -867,7 +882,6 @@ def run_queue(
                 pending.clear()
                 # Keep monitoring already-launched jobs to their recorded outcomes.
                 break
-            argv = substitute_gpu(job["argv"], gpu)
             handle = (log_dir / f"{job['name']}.log").open("ab")
             process = subprocess.Popen(
                 argv, cwd=ROOT, env={**child_env, "RESEARCH_METADATA": json.dumps(job.get("research", {})), "RESEARCH_GPU": str(gpu), **({"WANDB_JOB_TYPE": job["research"]["job_type"]} if job.get("research") else {})}, stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
@@ -935,6 +949,9 @@ def check_train(run_dir: Path, iterations: int, log: Path | None = None) -> dict
         from research_workflow.verification import checkpoint_problems
 
         problems.extend(checkpoint_problems(checkpoint))
+    provenance_file = run_dir / "research_provenance.json"
+    provenance = json.loads(provenance_file.read_text()) if provenance_file.is_file() else {}
+    finite_key = "Checks/finite_model" if provenance.get("domain") == "world_model" else "Checks/finite_rewards_std"
     stream = run_dir / "locomotion_metrics.jsonl"
     if stream.is_file():
         records = [json.loads(line) for line in stream.read_text().splitlines() if line.strip()]
@@ -943,8 +960,7 @@ def check_train(run_dir: Path, iterations: int, log: Path | None = None) -> dict
         bad = [
             r.get("iteration")
             for r in records
-            if r.get("Checks/finite_rewards_std") != 1.0
-            or any(isinstance(v, float) and not math.isfinite(v) for v in r.values())
+            if r.get(finite_key) != 1.0 or any(isinstance(v, float) and not math.isfinite(v) for v in r.values())
         ]
         if bad:
             problems.append(f"non-finite or failed checks at iterations {bad[:5]}")
@@ -2388,6 +2404,12 @@ def _print_json_lines(items: Iterable[dict]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: C901
+    argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "world-model":
+        from world_modeling.campaign import main as world_model_campaign
+
+        world_model_campaign(argv[1:])
+        return 0
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 

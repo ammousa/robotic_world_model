@@ -113,9 +113,14 @@ def validate_contract(kind: str, doc: dict, hypothesis: dict | None = None) -> d
         ):
             if not isinstance(doc[field], list):
                 raise ValueError(f"{field} must be a list")
-        if doc.get("domain", "rl") != "rl":
-            raise ValueError("domain must be rl (rsl_rl train.py / play.py)")
-        if doc["checkpoint_rule"] != "final":
+        domain = doc.get("domain", "rl")
+        if domain not in {"rl", "world_model"}:
+            raise ValueError("domain must be rl or the explicit world_model adapter")
+        if domain == "world_model" and not isinstance(doc.get("world_model"), dict):
+            raise ValueError("world_model domain requires its executable adapter settings")
+        if doc["checkpoint_rule"] != "final" and not (
+            domain == "world_model" and doc["checkpoint_rule"] == "validation_min"
+        ):
             raise ValueError("tooling supports checkpoint_rule: final; other rules need an explicit adapter")
         for category, source in (
             ("support_criteria", "support_if"),
@@ -175,7 +180,7 @@ def validate_contract(kind: str, doc: dict, hypothesis: dict | None = None) -> d
             check = (lambda x: type(x) is int and x >= 0) if field == "levels" else (lambda x: isinstance(x, str) and x)
             if any(not check(item) for item in ev[field]) or len(set(ev[field])) != len(ev[field]):
                 raise ValueError(f"evaluation {field} must be distinct nonnegative integers/nonempty names")
-        if ev["profile"] not in ("general", "forward_course"):
+        if ev["profile"] not in ("general", "forward_course", "world_model"):
             raise ValueError("unsupported evaluation profile")
         _positive(ev["num_envs"], "evaluation.num_envs")
         _positive(ev["num_episodes"], "evaluation.num_episodes")
@@ -235,6 +240,8 @@ def load_protocol(path: Path, hypothesis_path: Path | None = None) -> dict:
 def ensure_supported_evaluation(protocol: dict) -> None:
     from .verification import validate_reducers
 
+    if protocol.get("domain") == "world_model":
+        raise ValueError("world_model evidence requires world_modeling.campaign, not the RL episode evaluator")
     validate_reducers(protocol["evaluation"])
     if protocol["evaluation"]["episode_sampling"] != "first_episode_per_env":
         raise ValueError("fixed_k_episodes_per_env is declared but not supported by the current evaluator")
@@ -319,7 +326,9 @@ def runtime_fingerprint(root: Path | None = None, resolved_config=None, asset_pa
         "python": platform.python_version(),
         "packages": versions,
         "isaaclab_commit": source_commit(isaaclab_path(root)),
-        "rsl_rl_commit": source_commit(root.parent / "rsl_rl_rwm"),
+        "rsl_rl_commit": source_commit(
+            Path(os.environ["RSL_RL_REPOSITORY"]) if os.environ.get("RSL_RL_REPOSITORY") else root.parent / "rsl_rl_rwm"
+        ),
         "cuda_runtime": getattr(getattr(torch, "version", None), "cuda", None),
         "gpu_driver": query(
             [

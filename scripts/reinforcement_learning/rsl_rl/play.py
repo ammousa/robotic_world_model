@@ -11,6 +11,14 @@ import argparse
 import sys
 from pathlib import Path
 
+# The scored neural rollout loads neither Isaac Sim nor a physics world.
+if "--world_model_score" in sys.argv[1:]:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+    from world_modeling.evaluation import main as score_dynamics
+
+    score_dynamics([value for value in sys.argv[1:] if value != "--world_model_score"])
+    raise SystemExit(0)
+
 from isaaclab.app import AppLauncher
 
 # the research workflow package (src/research_workflow) is plain Python: import it from this checkout
@@ -29,6 +37,15 @@ parser.add_argument(
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+parser.add_argument("--world_model_output", help="Record terminal-safe dynamics transitions, without policy updates.")
+parser.add_argument("--world_model_config", help="Exact collection partition/seed/command specification JSON.")
+parser.add_argument("--world_model_shadow", help="Replay autonomous departure actions from a saved prediction NPZ.")
+parser.add_argument(
+    "--world_model_replay", help="Kinematic playback from immutable scored predictions; no dynamics stepping."
+)
+parser.add_argument("--world_model_metadata", help="Scored dataset metadata for kinematic playback.")
+parser.add_argument("--world_model_video", help="Output MP4 for kinematic playback.")
+parser.add_argument("--world_model_episode", type=int, default=0)
 parser.add_argument(
     "--use_pretrained_checkpoint",
     action="store_true",
@@ -39,8 +56,10 @@ parser.add_argument(
     "--eval_output_dir",
     type=str,
     default=None,
-    help="Scored evaluation: simulate --num_episodes episodes per environment and write per-episode rows, "
-    "a summary and the run provenance here (see scripts/research_runs.py eval-jobs).",
+    help=(
+        "Scored evaluation: simulate --num_episodes episodes per environment and write per-episode rows, "
+        "a summary and the run provenance here (see scripts/research_runs.py eval-jobs)."
+    ),
 )
 parser.add_argument(
     "--num_episodes", type=int, default=1, help="Episodes per environment to simulate with --eval_output_dir."
@@ -52,7 +71,7 @@ AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
 args_cli, hydra_args = parser.parse_known_args()
 # always enable cameras to record video
-if args_cli.video:
+if args_cli.video or args_cli.world_model_replay:
     args_cli.enable_cameras = True
 
 # clear out sys.argv for Hydra
@@ -72,6 +91,7 @@ import torch
 
 from rsl_rl.runners import DistillationRunner, OnPolicyRunner
 
+import isaaclab_tasks  # noqa: F401
 from isaaclab.envs import (
     DirectMARLEnv,
     DirectMARLEnvCfg,
@@ -82,10 +102,12 @@ from isaaclab.envs import (
 from isaaclab.utils.assets import retrieve_file_path
 from isaaclab.utils.dict import print_dict
 from isaaclab.utils.pretrained_checkpoint import get_published_pretrained_checkpoint
-
-from isaaclab_rl.rsl_rl import RslRlBaseRunnerCfg, RslRlVecEnvWrapper, export_policy_as_jit, export_policy_as_onnx
-
-import isaaclab_tasks  # noqa: F401
+from isaaclab_rl.rsl_rl import (  # noqa: F401
+    RslRlBaseRunnerCfg,
+    RslRlVecEnvWrapper,
+    export_policy_as_jit,
+    export_policy_as_onnx,
+)
 from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
@@ -167,8 +189,17 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     log_dir = os.path.dirname(resume_path)
     evaluating = args_cli.eval_output_dir is not None
 
+    if args_cli.world_model_output:
+        if not args_cli.world_model_config or evaluating or args_cli.video:
+            raise ValueError("world-model collection needs a config and a separate, unscored Play invocation")
+        from world_modeling.collection import configure
+
+        configure(env_cfg)
+
     # create isaac environment
-    env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+    env = gym.make(
+        args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video or args_cli.world_model_replay else None
+    )
 
     # convert to single-agent instance if required by the RL algorithm
     if isinstance(env.unwrapped, DirectMARLEnv):
@@ -177,9 +208,11 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # wrap for video recording
     if args_cli.video:
         video_kwargs = {
-            "video_folder": os.path.join(args_cli.eval_output_dir, "videos")
-            if evaluating
-            else os.path.join(log_dir, "videos", "play"),
+            "video_folder": (
+                os.path.join(args_cli.eval_output_dir, "videos")
+                if evaluating
+                else os.path.join(log_dir, "videos", "play")
+            ),
             "step_trigger": lambda step: step == 0,
             "video_length": args_cli.video_length,
             "disable_logger": True,
@@ -192,6 +225,19 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     # wrap around environment for rsl-rl
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
+
+    if args_cli.world_model_replay:
+        from world_modeling.visualization import replay
+
+        replay(
+            env,
+            args_cli.world_model_replay,
+            args_cli.world_model_metadata,
+            args_cli.world_model_episode,
+            args_cli.world_model_video,
+        )
+        env.close()
+        return
 
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
     from research_workflow import checkpoint_digest
@@ -216,6 +262,20 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # reset environment
     obs = env.get_observations()
     timestep = 0
+    if args_cli.world_model_output:
+        from world_modeling.collection import collect
+
+        collect(
+            env,
+            policy,
+            resume_path,
+            evaluated_checkpoint_sha256,
+            args_cli.world_model_config,
+            args_cli.world_model_output,
+            shadow=args_cli.world_model_shadow,
+        )
+        env.close()
+        return
     if evaluating:
         evaluate(env, env_cfg, agent_cfg, policy, obs, resume_path, evaluated_checkpoint_sha256, task_name)
         env.close()

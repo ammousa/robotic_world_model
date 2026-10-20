@@ -2,7 +2,7 @@ schema_version: 1
 domain: world_model
 group: rwm-physical-consistency
 hypothesis_id: h-299a1e3dd023da159020919b
-protocol_version: 1
+protocol_version: 2
 project: rwm-explore
 variants:
   B0:
@@ -540,7 +540,7 @@ world_model:
     B3_accel: same B2 checkpoint; dv/dt reparameterization at dt=0.02; no new learned model
   phase_commands:
   - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
-    --phase collect
+    --phase assemble
   - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
     --phase train
   - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
@@ -564,7 +564,8 @@ world_model:
   evaluation_reservation_basis: 'Conservative configured-episode reservation covering both allowed attempts:
     selected A/B/shadow and final-A forks, 16 stochastic streams, validation at every checkpoint and pilot,
     collection, simulator shadows, and illustrative replays; under 200000 units for this fixed campaign.
-    No further protocol/implementation pair is authorized by max_followups=0.'
+    This technical repair consumes the one additional authorized protocol/implementation pair. Earlier
+    reservations and allocated time remain charged; no recollection or scientific follow-up is authorized.'
   decision_reducers:
     primary_populations: test_id, validation-selected checkpoints, A; pair by all declared factors, require
       common reference-eligible IDs. Cap-10 includes every model-invalid prediction in that population;
@@ -599,6 +600,38 @@ world_model:
     coverage: Report simulator initialization failures and true reference terminations separately. Exact
       prediction metrics stop at true reference termination; behavioral model stability continues separately.
       Foot geometry and contact proxies are not force-balance evidence.
+  collection_reuse:
+    original_protocol_id: p-36884b9f4ff356725923c7b6
+    source_commit: 759a5e9c240b036b706b48baacb983a17dee20d1
+    files:
+      collect-test_command_shift-0.npz:
+        sha256: a27a29e217cbe3c21feef72663f70ae420d37aaf72765bd7cce00834b2a43ec1
+        metadata_sha256: 4bdae9dbe149048307c76e351ee2643fa6987aea99807393c147fbb5070bb77d
+      collect-test_id-0.npz:
+        sha256: a8d738372b60186ad6511ca839b261fa592a5e1c023184b3464b0f0e4666b7ef
+        metadata_sha256: 431541a3ea92c3725bd4fcb9784d592395496c2f2a5718f6badbc8ce73e7e8be
+      collect-train-0.npz:
+        sha256: 238cfbc6ad99c596fe3c186b4c72809ae5a2e55258c269554c61100c18cff096
+        metadata_sha256: bf5764903232861c7cf4be96ab9cd09bbc64a66785f322390d254dcfd8b6d5db
+      collect-train-256.npz:
+        sha256: 9df2384904a2c5d44100cc28c8c15fdcf67a9b357d9e210ecadf6085d862bf00
+        metadata_sha256: cfd6c513da4aa3b3f480df85d5711863ed108e1b990f9278f3438c42f32dd191
+      collect-train-512.npz:
+        sha256: 53aaa06c3b8bb5a63933f98b438f6ecfdc6536fcc0090af53afe8a9e96b196b1
+        metadata_sha256: 67e0d7079568826145c5cdd71a5681f5bfbedaac5928008fc47fab31016262e7
+      collect-train-768.npz:
+        sha256: a0b96cac860cc1366484fcbe98694cc9d097f9285e18555ad43f26f4c97395b8
+        metadata_sha256: 64c34ec7b3c7eb712799dee33a0882c1163672627dacb3ca6116ec67ff67b56a
+      collect-validation-0.npz:
+        sha256: 497c3a84c609269f46bb712357b63b3403c4d7fd6b83b1982a98769fc48dc506
+        metadata_sha256: 26a86f4bc2ac56f5de8679491b7b32edfae292349951a445d8c8fc5b3f0ce993
+    recollection: false
+    prior_allocated_GPU_hours:
+      0: 0.15472222222222223
+      1: 0.12333333333333334
+    required_environment: OMNI_KIT_ACCEPT_EULA=YES, as in the established simulator preflight
+    authority: Latest user expressly authorized continuation after concrete repair request. One technical
+      pair, no change to scientific method, data, seeds or hard GPU caps.
 assumptions:
 - ASSUMPTION numerical training budget, seeds 11/22, immutable collection recipe, optimizer, validation
   checkpoint rule, diagnostics and fixed integration scheme are engineering/scientific proposals requiring

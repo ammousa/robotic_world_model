@@ -87,19 +87,16 @@ def collection_specs(protocol):
 
 
 def collect(protocol, rr, env, budget):
-    from .dataset import assemble
-
     settings = protocol["world_model"]
     scratch = Path(budget["log_root"])
     specs = scratch / "collection_specs"
     specs.mkdir(parents=True, exist_ok=True)
-    jobs, parts = [], []
+    jobs = []
     for spec in collection_specs(protocol):
         name = f"collect-{spec['partition']}-{spec['episode_offset']}"
         config = specs / f"{name}.json"
         config.write_text(json.dumps(spec, indent=2))
         output = scratch / "collection_parts" / f"{name}.npz"
-        parts.append(output)
         jobs.append(
             {
                 "name": name,
@@ -129,6 +126,32 @@ def collect(protocol, rr, env, budget):
     tag = rr.pin_launch(protocol["group"], "eval")
     if rr.run_queue(jobs, protocol["compute_pool"], scratch / "collection", env=env, launch_tag=tag, gpu_budget=budget):
         raise RuntimeError("collection failed; preserve all attempts and request independent review")
+    assemble_dataset(protocol, rr, env, budget)
+
+
+def assemble_dataset(protocol, rr, env, budget):
+    """Verify declared raw collection before CPU-only assembly and publication."""
+    from .dataset import assemble
+
+    settings = protocol["world_model"]
+    scratch = Path(budget["log_root"])
+    reuse = settings.get("collection_reuse")
+    parts = []
+    for spec in collection_specs(protocol):
+        path = scratch / "collection_parts" / f"collect-{spec['partition']}-{spec['episode_offset']}.npz"
+        info = json.loads(path.with_suffix(".json").read_text())
+        if info["spec"] != spec:
+            raise ValueError("saved collection specification differs from approved protocol")
+        if reuse:
+            expected = reuse["files"][path.name]
+            if (
+                file_digest(path) != expected["sha256"]
+                or file_digest(path.with_suffix(".json")) != expected["metadata_sha256"]
+                or info["runtime_fingerprint"]["commit"] != reuse["source_commit"]
+                or info["runtime_fingerprint"]["rsl_rl_commit"] != settings["algorithm_commit"]
+            ):
+                raise ValueError("saved collection differs from the approved immutable source and hashes")
+        parts.append(path)
     metadata = assemble(parts, ROOT / settings["dataset"])
     artifact = wandb.Artifact(
         protocol["group"] + "-dataset",
@@ -442,7 +465,9 @@ def render(protocol, rr, env, budget):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--protocol", required=True)
-    parser.add_argument("--phase", choices=["collect", "train", "evaluate", "render", "publish"], required=True)
+    parser.add_argument(
+        "--phase", choices=["collect", "assemble", "train", "evaluate", "render", "publish"], required=True
+    )
     arguments = parser.parse_args(argv)
     # One owner across every phase; existing events remain the only accounting log.
     lock_path = ROOT / "logs/queue" / Path(arguments.protocol).parent.name / "campaign.lock"
@@ -458,9 +483,9 @@ def main(argv=None):
 
             publish(protocol, list(trained_cells(protocol, rr)))
         else:
-            {"collect": collect, "train": train, "evaluate": evaluate, "render": render}[arguments.phase](
-                protocol, rr, env, budget
-            )
+            {"collect": collect, "assemble": assemble_dataset, "train": train, "evaluate": evaluate, "render": render}[
+                arguments.phase
+            ](protocol, rr, env, budget)
 
 
 if __name__ == "__main__":

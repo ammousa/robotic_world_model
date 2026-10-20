@@ -98,7 +98,7 @@ architecture:
 implementation_scope: Model module, immutable fixed-data adapter and explicitly separate world-model scoring
   over the existing train.py/play.py and queue APIs. Existing RL paths preserved.
 verification:
-  cpu_suite: 256 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
+  cpu_suite: 264 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
     python -m pytest tests/test_research_*.py -q
   policy_forward: stock ActorCritic, frozen boundary and traced actor agree bitwise on CPU
   simulator_smoke: Not launched; requires Gate C and is charged to the same GPU budget
@@ -111,6 +111,9 @@ verification:
     optimizer updates performed during verification.
   cpu_interpreter: Use the rwm-derived runtime-check-env with Torch 2.5.1 and tensordict; exact reviewed
     command in Gate B handoff. Base Python lacks tensordict.
+  technical_repair: Eight new CPU regression cases cover raw-array/record preservation, population aliases,
+    real physics mismatches, immutable-manifest protection and resume provenance. No simulator or optimizer
+    update.
 limitations:
 - Only two independent training seeds; no aggregate confidence interval or population-support claim.
 - USD frame extraction must agree with actual initial foot-link coordinates within 2 mm before collection
@@ -122,3 +125,13 @@ parameter_counts:
   B1: 1417009
   B2: 1413889
   E3_direct_velocity: 1413889
+technical_repair:
+  reason: Exclude the validated derived terrain population alias from mechanics equality; reuse immutable
+    collection through CPU-only assemble phase.
+  source_changes:
+  - src/world_modeling/dataset.py
+  - src/world_modeling/campaign.py
+  - tests/test_research_dataset.py
+  training_model_or_evaluation_changes: none
+  collection_source_commit: 759a5e9c240b036b706b48baacb983a17dee20d1
+  recollection: false

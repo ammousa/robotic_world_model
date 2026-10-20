@@ -42,7 +42,9 @@ def assemble(parts, output):
         metadata = values
         resolved = copy.deepcopy(info["resolved_config"])
         resolved.pop("seed", None)
-        resolved["scene"].pop("num_envs", None)
+        population = resolved["scene"].pop("num_envs")
+        if resolved["scene"]["terrain"].pop("num_envs") != population:
+            raise ValueError("terrain population differs from declared scene population")
         if mechanics is not None and resolved != mechanics:
             raise ValueError("resolved mechanics/actuators/materials differ across collection batches")
         mechanics = resolved

@@ -258,6 +258,12 @@ def main(argv=None):
     rows, errors = scored_rows(
         prediction, arrays, metadata, args.partition, args.mode, checkpoint["variant"], checkpoint["seed"]
     )
+    from research_workflow import paired_unit_id
+
+    for row in rows:
+        row["eval_unit_id"] = paired_unit_id(
+            row, {}, checkpoint["research"]["protocol_contract"]["evaluation"]["paired_factors"]
+        )
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=False)
     np.savez_compressed(

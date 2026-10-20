@@ -5,7 +5,11 @@ import numpy as np
 import torch
 from pathlib import Path
 
+import pandas as pd
+
 import wandb
+from research_workflow import paired_unit_id
+from research_workflow.gpu_budget import used_seconds
 
 from .core import file_digest, pose_from_states, read_partition
 from .evaluation import HORIZONS
@@ -25,6 +29,8 @@ def verify_cell(path, checkpoint, protocol, partition, mode, expected_ids):
         "episode_ids": expected_ids,
         "horizons": HORIZONS,
         "policy_sha256": protocol["world_model"]["policy_sha256"],
+        "dataset_sha256": file_digest(Path(protocol["world_model"]["dataset"]) / "metadata.json"),
+        "train_run_id": data["wandb_run_id"],
     }
     if any(info.get(key) != value for key, value in expected.items()):
         raise ValueError(f"scored identity mismatch: {path}")
@@ -46,6 +52,8 @@ def verify_cell(path, checkpoint, protocol, partition, mode, expected_ids):
     }:
         raise ValueError("scored population has missing or duplicate episode/horizon units")
     for row in rows:
+        if row.get("eval_unit_id") != paired_unit_id(row, {}, protocol["evaluation"]["paired_factors"]):
+            raise ValueError("scored paired-unit ID is not reproducible from declared factors")
         if (
             row["variant"] != data["variant"]
             or row["training_seed"] != data["seed"]
@@ -143,10 +151,106 @@ def equality_controls(directory, variant, metadata):
     return evidence
 
 
+def trajectory_table(destination, metadata, variant, seed):
+    tables = []
+    defaults = np.asarray(metadata["default_joint_position"])
+    base_rows = json.loads((destination / "test_id-A/scored_rows.json").read_text())
+    candidates = [row for row in base_rows if row["horizon_steps"] == 100 and row["reference_eligible"]]
+    worst = max(candidates, key=lambda row: row["failure_aware_score"])["episode_id"] if candidates else 0
+    episodes = sorted({0, 64, 128, 192, worst})
+    for mode in ("A", "B"):
+        saved = dict(np.load(destination / f"test_id-{mode}/predictions.npz"))
+        for episode in episodes:
+            index = saved["episode_id"].tolist().index(episode)
+            state, truth = saved["state"][index], saved["true_state"][index]
+            frame = {
+                "time_s": saved["time_s"],
+                "reference_valid": saved["reference_valid"][index],
+                "prediction_finite": saved["prediction_finite"][index],
+                "initialization_valid": bool(saved["initialization_valid"][index]),
+                "variant": variant,
+                "training_seed": seed,
+                "seed": seed,
+                "mode": mode,
+                "episode_id": episode,
+            }
+            for axis, name in enumerate("xyz"):
+                frame["predicted_com_" + name] = saved["position"][index, :, axis]
+                frame["actual_com_" + name] = saved["true_position"][index, :, axis]
+            dot = (saved["orientation"][index] * saved["true_orientation"][index]).sum(-1)
+            frame["orientation_error_rad"] = 2 * np.arccos(np.clip(np.abs(dot), 0, 1))
+            for joint, name in enumerate(metadata["joint_names"]):
+                frame[f"predicted_position_{name}"] = state[:, 9 + joint] + defaults[joint]
+                frame[f"actual_position_{name}"] = truth[:, 9 + joint] + defaults[joint]
+                frame[f"predicted_velocity_{name}"] = state[:, 21 + joint]
+                frame[f"actual_velocity_{name}"] = truth[:, 21 + joint]
+            tables.append(pd.DataFrame(frame))
+    return pd.concat(tables, ignore_index=True)
+
+
+def verify_videos(destination, metadata_path, selections):
+    outcomes = []
+    for episode, mode in selections:
+        video = destination / "videos" / f"{mode}-episode{episode}.mp4"
+        status_path = video.with_suffix(".json")
+        if not status_path.is_file():
+            raise ValueError(f"missing required illustrative replay outcome: {status_path}")
+        status = json.loads(status_path.read_text())
+        prediction = destination / f"test_id-{mode}/predictions.npz"
+        saved = dict(np.load(prediction))
+        index = saved["episode_id"].tolist().index(episode)
+        if not saved["initialization_valid"][index]:
+            frames, reason = 0, "invalid_initialization"
+        else:
+            reference = saved["reference_valid"][index]
+            finite = saved["prediction_finite"][index]
+            invalid = np.flatnonzero(~reference | ~finite)
+            frames = int(invalid[0]) if len(invalid) else len(reference)
+            reason = (
+                "horizon_complete"
+                if not len(invalid)
+                else ("reference_terminated" if not reference[frames] else "prediction_nonfinite")
+            )
+        expected = {
+            "kind": "illustrative_kinematic_replay_of_scored_arrays",
+            "episode_id": episode,
+            "frames": frames,
+            "end_reason": reason,
+            "physics_steps": 0,
+            "prediction_sha256": file_digest(prediction),
+            "dataset_sha256": file_digest(metadata_path),
+        }
+        if any(status.get(key) != value for key, value in expected.items()):
+            raise ValueError("illustrative replay provenance/coverage/censoring differs from its scored arrays")
+        if frames and (not video.is_file() or status["video_sha256"] != file_digest(video)):
+            raise ValueError("nonempty replay video is absent or changed")
+        outcomes.append(status)
+    return outcomes
+
+
 def publish(protocol, cells):
     root = Path.cwd()
+    budget_root = root / "logs/queue" / protocol["group"]
+    campaign_cost = {
+        "allocated_GPU_hours_per_device": {
+            str(gpu): used_seconds(budget_root, gpu) / 3600 for gpu in protocol["compute_pool"]
+        },
+        "allocated_GPU_hours_per_phase": {
+            phase: sum(used_seconds(budget_root / phase, gpu) for gpu in protocol["compute_pool"]) / 3600
+            for phase in ("collection", "smoke", "train", "prediction", "shadow", "shadow_score", "render")
+        },
+        "accounting": (
+            "conservative existing queue-event allocation, including startup/shutdown and failed attempts; shared"
+            " campaign total, do not sum across evaluation runs"
+        ),
+    }
     api = wandb.Api()
     checked = []
+    baseline = next(directory for variant, seed, directory, _, _ in cells if variant == "B0" and seed == 11)
+    baseline_rows = json.loads((baseline / "world_model_eval/test_id-A/scored_rows.json").read_text())
+    candidates = [row for row in baseline_rows if row["horizon_steps"] == 100 and row["reference_eligible"]]
+    worst = max(candidates, key=lambda row: row["failure_aware_score"])["episode_id"] if candidates else 0
+    replay_ids = sorted({0, 64, 128, 192, worst})
     # Verify every candidate before publishing any evaluation result.
     for variant, seed, directory, selected, final in cells:
         data = torch.load(selected, map_location="cpu", weights_only=True)
@@ -190,6 +294,11 @@ def publish(protocol, cells):
                     if len(streams) != len(ids) or ids != expected:
                         raise ValueError("stochastic diagnostic streams incomplete or duplicated")
                     stochastic = streams
+        selection = [(0, "A")] if seed != 11 else [(episode, mode) for episode in replay_ids for mode in ("A", "B")]
+        videos = verify_videos(
+            directory / "world_model_eval", root / protocol["world_model"]["dataset"] / "metadata.json", selection
+        )
+        (directory / "world_model_eval/replay_verification.json").write_text(json.dumps(videos, indent=2))
         checked.append((variant, seed, directory, selected, training, all_rows, summaries, infos, stochastic))
     for variant, seed, directory, selected, training, rows, summaries, infos, stochastic in checked:
         destination = directory / "world_model_eval"
@@ -208,6 +317,9 @@ def publish(protocol, cells):
                 "variant": variant,
                 "training_seed": seed,
                 "train_run_id": training.id,
+                "seed": seed,
+                "dataset_id": infos["test_id/A"]["dataset_sha256"],
+                "dataset_verification": {"manifest_sha256": infos["test_id/A"]["dataset_sha256"]},
                 "checkpoint_sha256": file_digest(selected),
                 "protocol_contract": protocol,
             },
@@ -231,20 +343,38 @@ def publish(protocol, cells):
                 metadata=config["research"],
             )
             artifact.add_dir(str(destination))
+            artifact.add(wandb.Table(dataframe=pd.DataFrame(rows)), name="episodes")
+            artifact.add(wandb.Table(dataframe=pd.DataFrame(stochastic)), name="stochastic")
+            artifact.add(
+                wandb.Table(dataframe=trajectory_table(destination, metadata, variant, seed)), name="trajectory_samples"
+            )
             logged = run.log_artifact(artifact)
             logged.wait()
             run.summary["scored_artifact"] = logged.qualified_name
             run.summary["verified_cells"] = 8
             run.summary["summaries"] = summaries
             run.summary["timing"] = infos["test_id/A"]["timing"]
+            for key, value in infos["test_id/A"]["timing"].items():
+                if isinstance(value, (float, int)):
+                    run.summary["efficiency/" + key] = value
             run.summary["population_inference"] = "inconclusive_two_training_seeds"
+            run.summary["campaign_cost"] = campaign_cost
+            if variant == "B0" and seed == 11:
+                ledger = wandb.Artifact(
+                    protocol["group"] + "-queue-cost-evidence", type="gpu-accounting", metadata=campaign_cost
+                )
+                for path in sorted(budget_root.rglob("events.jsonl")):
+                    ledger.add_file(str(path), name=str(path.relative_to(budget_root)))
+                logged_ledger = run.log_artifact(ledger)
+                logged_ledger.wait()
+                run.summary["campaign_cost_artifact"] = logged_ledger.qualified_name
             for key, values in summaries.items():
                 for row in values:
                     prefix = f"{key}/{row['horizon_steps']}"
                     for metric, value in row.items():
                         if isinstance(value, (float, int)):
                             run.summary[f"{prefix}/{metric}"] = value
-            run.log({"scored_population": wandb.Table(dataframe=__import__("pandas").DataFrame(rows))})
+            run.log({"scored_population": wandb.Table(dataframe=pd.DataFrame(rows[:10000]))})
     print(
         f"EVALUATION_VERIFIED_AND_PUBLISHED: {len(checked)} training runs, 8 cells each; no conclusions drawn",
         flush=True,

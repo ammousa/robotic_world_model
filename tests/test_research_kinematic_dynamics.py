@@ -257,3 +257,69 @@ def test_visual_pose_readout_has_no_feedback_and_gravity_nan_is_a_failure(metada
     score = score_at_horizon(errors, 10)
     assert not score["finite"].item()
     assert score["capped_score"].item() == 10
+
+
+def test_mechanics_identity_normalizes_only_execution_placement():
+    from research_workflow.verification import canonical_config
+
+    first = {"sim": {"device": "cuda:0", "dt": 0.005}, "actuator": {"friction": 0.6}}
+    second = {"sim": {"device": "cuda:1", "dt": 0.005}, "actuator": {"friction": 0.6}}
+    assert canonical_config(first) == canonical_config(second)
+    second["actuator"]["friction"] = 0.7
+    assert canonical_config(first) != canonical_config(second)
+
+
+def test_replay_coverage_requires_bound_failure_outcomes(tmp_path):
+    import json
+
+    from world_modeling.core import file_digest
+    from world_modeling.results import verify_videos
+
+    cell = tmp_path / "test_id-A"
+    cell.mkdir()
+    video = tmp_path / "videos"
+    video.mkdir()
+    metadata = tmp_path / "metadata.json"
+    metadata.write_text("{}")
+    prediction = cell / "predictions.npz"
+    np.savez(
+        prediction,
+        episode_id=np.array([0]),
+        initialization_valid=np.array([False]),
+        reference_valid=np.zeros((1, 10), bool),
+        prediction_finite=np.zeros((1, 10), bool),
+    )
+    with pytest.raises(ValueError, match="missing required"):
+        verify_videos(tmp_path, metadata, [(0, "A")])
+    status = {
+        "kind": "illustrative_kinematic_replay_of_scored_arrays",
+        "episode_id": 0,
+        "frames": 0,
+        "end_reason": "invalid_initialization",
+        "physics_steps": 0,
+        "prediction_sha256": file_digest(prediction),
+        "dataset_sha256": file_digest(metadata),
+        "video_sha256": None,
+    }
+    sidecar = video / "A-episode0.json"
+    sidecar.write_text(json.dumps(status))
+    assert len(verify_videos(tmp_path, metadata, [(0, "A")])) == 1
+    status["prediction_sha256"] = "different-candidate"
+    sidecar.write_text(json.dumps(status))
+    with pytest.raises(ValueError, match="provenance"):
+        verify_videos(tmp_path, metadata, [(0, "A")])
+
+
+def test_world_model_report_profile_does_not_inherit_rl_metrics():
+    from types import SimpleNamespace
+
+    from research_workflow.metric_resolution import MetricResolver
+
+    run = SimpleNamespace(
+        id="wm",
+        name="B0-seed11",
+        job_type="train",
+        tags=[],
+        config={"runner_cfg": {"research": {"protocol_contract": {"domain": "world_model"}}}},
+    )
+    assert MetricResolver([run]).profile(run) == "world_model"

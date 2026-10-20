@@ -3,6 +3,7 @@
 import hashlib
 import json
 import numpy as np
+import os
 import torch
 import yaml
 from pathlib import Path
@@ -184,6 +185,7 @@ def collect(env, policy, checkpoint, checkpoint_sha256, config_path, output, sha
         "body_inertia": robot.root_physx_view.get_inertias()[0].cpu().tolist(),
         "shape_material_properties": robot.root_physx_view.get_material_properties()[0].cpu().tolist(),
         "body_com_positions": data.body_com_pos_b[0].cpu().tolist(),
+        "execution_placement": {"sim_device": str(base.cfg.sim.device), "queue_GPU": os.environ.get("RESEARCH_GPU")},
     }
     path.with_suffix(".json").write_text(json.dumps(metadata, indent=2))
     print(f"saved immutable transitions: {path}", flush=True)

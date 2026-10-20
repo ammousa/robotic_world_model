@@ -533,6 +533,8 @@ world_model:
     by every trainer.
   - Shadow prefix equality is required on every initialized episode; initialization-failure masks must
     agree, while post-reset states of invalid histories never contribute to scoring.
+  - Publication requires every predeclared illustrative replay or a digest-bound zero-frame failure outcome;
+    video references stop at true termination. Raw scored arrays remain the evidence authority.
   equality_controls:
     B0_visual: identical stored predictions/actions; pose is a readout-only consumer
     B3_accel: same B2 checkpoint; dv/dt reparameterization at dt=0.02; no new learned model
@@ -556,6 +558,13 @@ world_model:
     forks; no eligible forks aborts training. Earliest update breaks ties; finite-pair scores and denominators
     remain separate.
   pilot_max_job_seconds: 900
+  model_latency_overhead_statistic: batch-one model p95, compared on the same GPU model and dtype; policy-plus-model
+    constraint also uses p95
+  reserved_evaluation_units: 200000
+  evaluation_reservation_basis: 'Conservative configured-episode reservation covering both allowed attempts:
+    selected A/B/shadow and final-A forks, 16 stochastic streams, validation at every checkpoint and pilot,
+    collection, simulator shadows, and illustrative replays; under 200000 units for this fixed campaign.
+    No further protocol/implementation pair is authorized by max_followups=0.'
 assumptions:
 - ASSUMPTION numerical training budget, seeds 11/22, immutable collection recipe, optimizer, validation
   checkpoint rule, diagnostics and fixed integration scheme are engineering/scientific proposals requiring
@@ -570,3 +579,173 @@ assumptions:
 - Repeated visualization is illustrative replay from fixed scored arrays and does not change scored populations.
 - The historic policy run is failed; local checkpoint is finite and CPU policy/export parity passed. This
   does not relabel that run as complete.
+reporting:
+  compatibility:
+    loss_definition: full reconstructed normalized 45-state sampled MSE; 32 history and 8 autoregressive
+      steps; separately teacher-forced auxiliary BCE; independent-output logstd bounds
+  metrics:
+  - name: train/state
+    scope: train
+    direction: lower
+    unit: sum normalized squared state coordinates
+    aggregation: per_run
+    comparison: loss
+    axis: train/update
+    required: true
+  - name: val/id/trajectory_nrmse_2s
+    scope: train
+    direction: lower
+    unit: dimensionless six-block score
+    aggregation: per_run
+    comparison: evaluation
+    axis: train/update
+    required: true
+  - name: test_id/A/10/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/50/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/100/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/250/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/1500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/10/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/50/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/100/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/250/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/1500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/10/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/50/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/100/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/250/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/1500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  artifact_only_outcomes:
+  - constraint_violation_curves_and_failure_rates
+  - autonomous_closed_loop_outcome_discrepancy
+  missing_reference_policy: A metric with zero eligible reference forks is unavailable, never zero; panels
+    with no finite reference coverage must remain explicitly unavailable.

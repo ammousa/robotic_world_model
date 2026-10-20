@@ -229,7 +229,13 @@ def reservations(protocol: dict) -> tuple[int, int]:
     evaluation = protocol["evaluation"]
     cells = len(evaluation["seeds"]) * max(1, len(evaluation["levels"]) + len(evaluation["difficulties"]))
     cells *= evaluation["num_envs"] * evaluation["num_episodes"]
-    return units * runs, cells * runs
+    evaluation_units = cells * runs
+    if protocol.get("domain") == "world_model":
+        declared = protocol["world_model"].get("reserved_evaluation_units")
+        if type(declared) is not int or declared < evaluation_units:
+            raise ValueError("world-model reservation must cover all additional diagnostic/replay/validation units")
+        evaluation_units = declared
+    return units * runs, evaluation_units
 
 
 def record_gate(root: Path, directory: Path, proposal: dict) -> dict:

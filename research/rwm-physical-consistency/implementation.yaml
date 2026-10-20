@@ -98,7 +98,7 @@ architecture:
 implementation_scope: Model module, immutable fixed-data adapter and explicitly separate world-model scoring
   over the existing train.py/play.py and queue APIs. Existing RL paths preserved.
 verification:
-  cpu_suite: 252 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
+  cpu_suite: 256 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
     python -m pytest tests/test_research_*.py -q
   policy_forward: stock ActorCritic, frozen boundary and traced actor agree bitwise on CPU
   simulator_smoke: Not launched; requires Gate C and is charged to the same GPU budget
@@ -109,6 +109,8 @@ verification:
   pre_commit: All applicable hooks passed on every changed file; sibling module Black formatted.
   construction: All four variants instantiate with original MBPOPPO; Adam lr .001, weight decay 0; no
     optimizer updates performed during verification.
+  cpu_interpreter: Use the rwm-derived runtime-check-env with Torch 2.5.1 and tensordict; exact reviewed
+    command in Gate B handoff. Base Python lacks tensordict.
 limitations:
 - Only two independent training seeds; no aggregate confidence interval or population-support claim.
 - USD frame extraction must agree with actual initial foot-link coordinates within 2 mm before collection

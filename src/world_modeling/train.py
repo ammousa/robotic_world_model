@@ -118,6 +118,8 @@ def main(argv=None):
     research.update(
         domain="world_model",
         dataset=resolved["dataset_sha256"],
+        dataset_id=resolved["dataset_sha256"],
+        dataset_verification={"manifest_sha256": resolved["dataset_sha256"]},
         loss_definition="original_sampled_MSE_reconstructed_45_state",
         runtime_fingerprint=fingerprint,
     )

@@ -172,6 +172,8 @@ class MetricResolver:
     def profile(self, run):
         cfg, rs = run.config, research(run)
         domain = (rs.get("protocol_contract") or {}).get("domain")
+        if domain == "world_model":
+            return "world_model"
         if domain == "rl" or runner_config(cfg):
             return "rl"
         return "unknown"

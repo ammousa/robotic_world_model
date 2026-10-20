@@ -7,6 +7,8 @@ from pathlib import Path
 
 from rsl_rl.modules.kinematic_dynamics import quat_rotate
 
+from .core import file_digest
+
 
 @torch.inference_mode()
 def replay(env, prediction_path, metadata_path, episode, output):
@@ -72,6 +74,9 @@ def replay(env, prediction_path, metadata_path, episode, output):
                 "end_reason": reason,
                 "reference_censored": reason == "reference_terminated",
                 "physics_steps": 0,
+                "prediction_sha256": file_digest(prediction_path),
+                "dataset_sha256": file_digest(metadata_path),
+                "video_sha256": file_digest(output) if Path(output).is_file() else None,
             },
             indent=2,
         )

@@ -134,3 +134,27 @@
   mode: unattended
   at: '2026-10-20T22:00:19.075327+00:00'
   receipt_id: r-8dce18eccc54de94e2650f94
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: The minimal repair excludes only a validated population alias while preserving
+    physics checks and raw records. Assembly verifies pinned collection specifications,
+    hashes and source. Eight independently reproduced regression checks pass; training,
+    models and evaluation remain unchanged.
+  risk: Scientific assembly and training remain unexecuted under this repair. Raw-data
+    reuse and cumulative reservations require renewed Gate C.
+  next_action: Record B and submit protocol v2, pinned collection identities, exact
+    assembly commands and remaining cumulative compute for Gate C.
+  evidence:
+  - src/world_modeling/dataset.py
+  - src/world_modeling/campaign.py
+  - /tmp/rwm-physical-review/repair-tests.txt
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-7e4eaa62d66db0a65e414ab0
+    prior_receipts:
+      A: r-8dce18eccc54de94e2650f94
+  workflow_id: w-c9f4760221dd7354642d6397
+  mode: unattended
+  at: '2026-10-20T22:03:38.256360+00:00'
+  receipt_id: r-85a69e67ef5a0e09d972abaa

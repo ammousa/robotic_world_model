@@ -38,3 +38,27 @@
   mode: unattended
   at: '2026-10-20T20:26:37.349309+00:00'
   receipt_id: r-431cf3b2f3839791a5cc573e
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: Source preserves B0, recurrent gradients, frozen-policy inputs and matched
+    action timing. Independent verification passes 256 CPU tests. Structured checkpoints,
+    reset boundaries and evidence verification match the approved comparison without
+    privileged-input leakage.
+  risk: Simulator loading, USD geometry and deterministic replay remain unverified;
+    technical validation must fit the existing compute ceiling.
+  next_action: Record B, then submit exact protocol, commands, reservations, checkpoint
+    identity and compute limits for independent Gate C.
+  evidence:
+  - research/rwm-physical-consistency/implementation.yaml
+  - ../rsl_rl_rwm-agent-rwm-physical-consistency/rsl_rl/modules/kinematic_dynamics.py
+  - /tmp/rwm-physical-review/implementation-tests.txt
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-17e995d30c019a5162902e1e
+    prior_receipts:
+      A: r-431cf3b2f3839791a5cc573e
+  workflow_id: w-cc752bb2d7fd469a014ba9e3
+  mode: unattended
+  at: '2026-10-20T21:15:54.198095+00:00'
+  receipt_id: r-eb5d85c2780a472a90822ec9

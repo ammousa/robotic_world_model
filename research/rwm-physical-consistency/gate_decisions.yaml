@@ -202,3 +202,31 @@
   mode: unattended
   at: '2026-10-20T22:09:06.353561+00:00'
   receipt_id: r-c61cee00c07a54d7d7be8a68
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: Seven saved collection files and metadata match pinned identities. Eight
+    serialized jobs validate. Cumulative reservations fit; GPU 2/3 allocations retain
+    prior charges within 24 GPU-hours. Full runs remain conditional on technical and
+    cost checks.
+  risk: Training runtime and shadow replay remain unverified. This consumes the only
+    additional authorized technical pair.
+  next_action: Record and commit C; execute CPU assembly, pilots, conditional full
+    training, evaluation, replays and publication under the approved cumulative limits.
+  evidence:
+  - research/rwm-physical-consistency/protocol.yaml
+  - logs/queue/rwm-physical-consistency/pool23-proposed-train-jobs.jsonl
+  - logs/queue/rwm-physical-consistency/collection-attempt2/events.jsonl
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-71a271e3f4caa092c14267b6
+    protocol_id: p-9b1252337a3c6bf5b82b29b8
+    prior_receipts:
+      A: r-7504fdae30af8a887fa4c9b6
+      B: r-c61cee00c07a54d7d7be8a68
+  workflow_id: w-4cedd2120905b6aa22af99d1
+  reserved_training_units: 336000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-20T22:10:36.259415+00:00'
+  receipt_id: r-2919c7c5d47e616339f44fce

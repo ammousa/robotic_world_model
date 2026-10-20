@@ -62,3 +62,30 @@
   mode: unattended
   at: '2026-10-20T21:15:54.198095+00:00'
   receipt_id: r-eb5d85c2780a472a90822ec9
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: Exact commands preserve matched data, budgets and evaluation. Reservations
+    are 336000 training and 200000 evaluation units. Automatic full runs require passing
+    pilots and cost checks; cumulative timeouts enforce 12 GPU-hours per device.
+  risk: Runtime, assets, geometry and deterministic replay remain unverified; technical
+    failure may yield invalid or inconclusive evidence without follow-up authority.
+  next_action: Record and commit C, then execute approved phases under existing caps;
+    stop on technical failure or an unfittable cost forecast.
+  evidence:
+  - research/rwm-physical-consistency/protocol.yaml
+  - src/world_modeling/campaign.py
+  - src/research_workflow/gpu_budget.py
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-17e995d30c019a5162902e1e
+    protocol_id: p-36884b9f4ff356725923c7b6
+    prior_receipts:
+      A: r-431cf3b2f3839791a5cc573e
+      B: r-eb5d85c2780a472a90822ec9
+  workflow_id: w-cc752bb2d7fd469a014ba9e3
+  reserved_training_units: 336000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-20T21:23:37.018413+00:00'
+  receipt_id: r-c36202631660fd28becef59c

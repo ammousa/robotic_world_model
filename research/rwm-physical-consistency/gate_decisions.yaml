@@ -178,3 +178,27 @@
   mode: unattended
   at: '2026-10-20T22:07:29.448930+00:00'
   receipt_id: r-7504fdae30af8a887fa4c9b6
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: Device boundaries preserve physical GPU indices, select the requested current
+    CUDA device before model construction and synchronize timing explicitly. Eight
+    independently reproduced device checks pass; full-suite evidence shows 272 passes.
+    Scientific methods remain unchanged.
+  risk: Live GPU performance and remaining campaign feasibility remain unknown. Revised
+    protocol and cumulative accounting require Gate C.
+  next_action: Record B and submit the exact GPU 2/3 protocol, regenerated commands,
+    pinned collection identities and remaining total budget for C.
+  evidence:
+  - src/world_modeling/campaign.py
+  - src/world_modeling/evaluation.py
+  - /tmp/rwm-physical-review/pool23-tests.txt
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-71a271e3f4caa092c14267b6
+    prior_receipts:
+      A: r-7504fdae30af8a887fa4c9b6
+  workflow_id: w-4cedd2120905b6aa22af99d1
+  mode: unattended
+  at: '2026-10-20T22:09:06.353561+00:00'
+  receipt_id: r-c61cee00c07a54d7d7be8a68

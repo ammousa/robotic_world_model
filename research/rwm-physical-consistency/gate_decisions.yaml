@@ -158,3 +158,23 @@
   mode: unattended
   at: '2026-10-20T22:03:38.256360+00:00'
   receipt_id: r-85a69e67ef5a0e09d972abaa
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The unchanged hypothesis remains within the user-directed GPU switch and
+    reviewed repair scope. Allocating remaining time to GPUs 2 and 3 preserves prior
+    charges, the total ceiling, two seeds and scientific thresholds.
+  risk: CUDA placement and synchronized timing require renewed B review; cumulative
+    cost enforcement and executable protocol require C.
+  next_action: Submit the device-boundary changes and CPU verification at B, then
+    request C for the exact revised protocol.
+  evidence:
+  - research/rwm-physical-consistency/hypothesis.yaml
+  - research/rwm-physical-consistency/workflow.yaml
+  - research/rwm-physical-consistency/workflow.v2.yaml
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+  workflow_id: w-4cedd2120905b6aa22af99d1
+  mode: unattended
+  at: '2026-10-20T22:07:29.448930+00:00'
+  receipt_id: r-7504fdae30af8a887fa4c9b6

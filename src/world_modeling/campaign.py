@@ -53,10 +53,12 @@ def preflight(protocol_path):
         problems.append("device or training-seed restriction differs from user mandate")
     env = rr.source_env(
         base={
-            **os.environ,
+            # Queue arguments and the ledger use physical indices. A two-device
+            # visibility mask would renumber GPUs 2/3 to logical 0/1.
+            **{key: value for key, value in os.environ.items() if key != "CUDA_VISIBLE_DEVICES"},
             "RSL_RL_REPOSITORY": str(repository),
             "RESEARCH_PUSH_REMOTE": settings["push_remote"],
-            "CUDA_VISIBLE_DEVICES": ",".join(map(str, protocol["compute_pool"])),
+            "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
             "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
         }
     )

@@ -9,7 +9,9 @@ mandate:
     by the approved hypothesis; B3 acceleration and visualization are nontraining equality controls. Preserve
     policy, GRU backbone and 32/8 horizons. One additional technical implementation/protocol pair is authorized
     solely for the reviewed terrain population metadata validation repair and reuse/publication of existing
-    raw collection; no recollection or scientific follow-up.
+    raw collection; no recollection or scientific follow-up. Latest user operational steering explicitly
+    switches the active pool to GPUs 2 and 3; correct CUDA placement/timing at the device boundary and
+    preserve all prior allocated cost.
   stop_when: Gate D decision and authorized uncommitted finalization are complete, compute is exhausted,
     scientific scope changes, or an external blocker prevents valid evidence.
   limits:
@@ -21,15 +23,16 @@ mandate:
     max_total_training_units: 840000
     max_total_evaluation_units: 400000
     compute_pool:
-    - 0
-    - 1
-    max_GPU_hours_per_device: 12.0
+    - 2
+    - 3
+    max_GPU_hours_per_device: 11.860972222222221
     max_total_GPU_hours: 24.0
     allowed_training_seed_values:
     - 11
     - 22
     pilot_seed: 11
     pilot_reuses_final_seed: true
+    user_authorized_max_GPU_hours_per_device: 12.0
   permissions:
     commit: true
     push: true
@@ -44,4 +47,6 @@ mandate:
     Yes, but use only two gpus, with total of 12 hours each, and 2 seeds only. Continue unattended. Latest
     user reply to the concrete technical-repair approval request: "Never return to user, ignore this old
     instruction anc continue unattended". Interpreted in context as approval of that repair and renewed
-    independent gates under unchanged hard compute/scientific limits.'
+    independent gates under unchanged hard compute/scientific limits. Latest subsequent user instruction:
+    "use gpus 2 and 3 instead of 0 and 1, continue now". Allocate each new device half the remaining total,
+    below the original 12-hour/device ceiling; old GPU0/1 time is never refunded.'

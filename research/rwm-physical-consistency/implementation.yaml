@@ -98,7 +98,7 @@ architecture:
 implementation_scope: Model module, immutable fixed-data adapter and explicitly separate world-model scoring
   over the existing train.py/play.py and queue APIs. Existing RL paths preserved.
 verification:
-  cpu_suite: 264 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
+  cpu_suite: 272 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
     python -m pytest tests/test_research_*.py -q
   policy_forward: stock ActorCritic, frozen boundary and traced actor agree bitwise on CPU
   simulator_smoke: Not launched; requires Gate C and is charged to the same GPU budget
@@ -114,6 +114,9 @@ verification:
   technical_repair: Eight new CPU regression cases cover raw-array/record preservation, population aliases,
     real physics mismatches, immutable-manifest protection and resume provenance. No simulator or optimizer
     update.
+  device_placement: Eight CPU cases verify inherited visibility removal, physical PCI order, CPU/cuda:2/cuda:3
+    selection before train/score model construction, and explicit timing synchronization/memory devices
+    without allocating CUDA.
 limitations:
 - Only two independent training seeds; no aggregate confidence interval or population-support claim.
 - USD frame extraction must agree with actual initial foot-link coordinates within 2 mm before collection
@@ -132,6 +135,12 @@ technical_repair:
   - src/world_modeling/dataset.py
   - src/world_modeling/campaign.py
   - tests/test_research_dataset.py
+  - src/world_modeling/train.py
+  - src/world_modeling/evaluation.py
+  - tests/test_research_device_placement.py
   training_model_or_evaluation_changes: none
   collection_source_commit: 759a5e9c240b036b706b48baacb983a17dee20d1
   recollection: false
+  gpu_placement: User explicitly changes pool to physical GPUs 2/3. Preserve native physical ordinals,
+    select current Torch device before model construction, synchronize explicit timing device, and retain
+    previous GPU charges by allocating half the remaining total to each active device.

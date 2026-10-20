@@ -2,7 +2,7 @@ schema_version: 1
 domain: world_model
 group: rwm-physical-consistency
 hypothesis_id: h-299a1e3dd023da159020919b
-protocol_version: 2
+protocol_version: 3
 project: rwm-explore
 variants:
   B0:
@@ -56,8 +56,8 @@ training_budget:
   iterations: 20000
   num_envs: 256
 compute_pool:
-- 0
-- 1
+- 2
+- 3
 baseline_variants:
 - B0
 checkpoint_rule: validation_min
@@ -368,7 +368,7 @@ world_model:
   pilot_seed: 11
   max_job_seconds: 7200
   max_total_GPU_hours: 24.0
-  max_GPU_hours_per_device: 12.0
+  max_GPU_hours_per_device: 11.860972222222221
   evaluation_reserve_GPU_hours: 6.0
   collection:
     train:
@@ -627,11 +627,26 @@ world_model:
         metadata_sha256: 26a86f4bc2ac56f5de8679491b7b32edfae292349951a445d8c8fc5b3f0ce993
     recollection: false
     prior_allocated_GPU_hours:
-      0: 0.15472222222222223
-      1: 0.12333333333333334
+      '0': 0.15472222222222223
+      '1': 0.12333333333333334
     required_environment: OMNI_KIT_ACCEPT_EULA=YES, as in the established simulator preflight
     authority: Latest user expressly authorized continuation after concrete repair request. One technical
       pair, no change to scientific method, data, seeds or hard GPU caps.
+  device_placement:
+    requested_pool:
+    - 2
+    - 3
+    visibility: Unmasked native PCI bus order; queue physical indices match explicit Torch and AppLauncher
+      device IDs. Timing synchronizes the model device.
+    original_user_max_hours_per_device: 12.0
+    conservative_active_allocation_hours_each: 11.860972222222221
+    prior_pool:
+    - 0
+    - 1
+    prior_allocated_hours_retained: 0.27805555555555556
+    total_campaign_ceiling_GPU_hours: 24.0
+    authority: User explicitly switched to GPUs 2 and 3. Existing collected data and all science remain
+      unchanged.
 assumptions:
 - ASSUMPTION numerical training budget, seeds 11/22, immutable collection recipe, optimizer, validation
   checkpoint rule, diagnostics and fixed integration scheme are engineering/scientific proposals requiring

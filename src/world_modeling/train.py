@@ -73,6 +73,8 @@ def main(argv=None):
     if metadata != validation_metadata or file_digest(args.world_model_policy) != metadata["policy_sha256"]:
         raise ValueError("dataset metadata/policy mismatch")
     device = args.device
+    if torch.device(device).type == "cuda":
+        torch.cuda.set_device(device)
     model = build_model(args.world_model_variant, metadata, args.seed, device)
     actor = FrozenActor(args.world_model_policy, device)
     weights = {

@@ -1,0 +1,818 @@
+schema_version: 1
+domain: world_model
+group: rwm-physical-consistency
+hypothesis_id: h-299a1e3dd023da159020919b
+protocol_version: 2
+project: rwm-explore
+variants:
+  B0:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-physical-consistency
+    - --world_model_variant
+    - B0
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  B1:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-physical-consistency
+    - --world_model_variant
+    - B1
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  B2:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-physical-consistency
+    - --world_model_variant
+    - B2
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  E3_direct_velocity:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-physical-consistency
+    - --world_model_variant
+    - E3_direct_velocity
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+seeds:
+- 11
+- 22
+training_budget:
+  iterations: 20000
+  num_envs: 256
+compute_pool:
+- 0
+- 1
+baseline_variants:
+- B0
+checkpoint_rule: validation_min
+evaluation:
+  primary_metric:
+    name: recorded_action_physical_trajectory_nrmse_2s
+    direction: lower
+    unit: dimensionless, six equally weighted physical-state blocks with fixed SI scales
+  secondary_metrics:
+  - recorded_action_physical_trajectory_nrmse_1_2_5s_mean
+  - base_com_translation_rmse_m
+  - orientation_geodesic_rmse_rad
+  - body_linear_velocity_rmse_m_per_s
+  - body_angular_velocity_rmse_rad_per_s
+  - joint_position_rmse_rad
+  - joint_velocity_rmse_rad_per_s
+  - autonomous_closed_loop_outcome_discrepancy
+  - autonomous_action_shadow_physical_trajectory_nrmse_2s
+  - stable_rollout_duration_s
+  - constraint_violation_curves_and_failure_rates
+  - batch1_policy_plus_model_latency_p95_ms
+  constraints:
+  - At most 5 percent relative degradation in the 0.2-second primary physical score.
+  - At most 5 percent degradation in joint-position and joint-velocity RMSE at 1, 2 and 5 seconds.
+  - At most 2 percentage points increase in 30-second unstable-rollout fraction.
+  - At most 10 percent increase in autonomous command-tracking RMSE.
+  - At most 20 percent batch-one model latency overhead and policy-plus-model p95 below 20 ms.
+  paired_factors:
+  - training_seed
+  - evaluation_partition
+  - episode_id
+  - fork_step
+  - command_schedule_id
+  population: one fixed fork per held-out episode; 256 planned episode IDs per partition
+  seeds:
+  - 4300
+  - 4400
+  scenarios: []
+  levels: []
+  difficulties: []
+  num_envs: 256
+  num_episodes: 1
+  episode_sampling: first_episode_per_env
+  profile: world_model
+  metric_reducers: {}
+  artifact_metrics:
+    recorded_action_physical_trajectory_nrmse_2s:
+      source: scored_rows.json
+      columns:
+      - failure_aware_score
+      - physical_trajectory_nrmse
+      selection:
+        mode: A
+        partition: test_id
+        horizon_steps: 100
+    recorded_action_physical_trajectory_nrmse_1_2_5s_mean:
+      source: scored_rows.json
+      columns:
+      - failure_aware_score
+      - physical_trajectory_nrmse
+      selection:
+        mode: A
+        partition: test_id
+        horizon_steps:
+        - 50
+        - 100
+        - 250
+    base_com_translation_rmse_m:
+      source: scored_rows.json
+      columns:
+      - translation_rmse_m
+      selection: {}
+    orientation_geodesic_rmse_rad:
+      source: scored_rows.json
+      columns:
+      - orientation_rmse_rad
+      selection: {}
+    body_linear_velocity_rmse_m_per_s:
+      source: scored_rows.json
+      columns:
+      - linear_velocity_rmse_m_s
+      selection: {}
+    body_angular_velocity_rmse_rad_per_s:
+      source: scored_rows.json
+      columns:
+      - angular_velocity_rmse_rad_s
+      selection: {}
+    joint_position_rmse_rad:
+      source: scored_rows.json
+      columns:
+      - joint_position_rmse_rad
+      selection: {}
+    joint_velocity_rmse_rad_per_s:
+      source: scored_rows.json
+      columns:
+      - joint_velocity_rmse_rad_s
+      selection: {}
+    autonomous_closed_loop_outcome_discrepancy:
+      source: scored_rows.json
+      columns:
+      - physical_trajectory_nrmse
+      - command_tracking_linear_rmse
+      - command_tracking_yaw_rmse
+      selection:
+        mode: B
+    autonomous_action_shadow_physical_trajectory_nrmse_2s:
+      source: scored_rows.json
+      columns:
+      - failure_aware_score
+      - physical_trajectory_nrmse
+      selection:
+        mode: B_shadow
+        horizon_steps: 100
+    stable_rollout_duration_s:
+      source: scored_rows.json
+      columns:
+      - stable_duration_s
+      selection: {}
+    constraint_violation_curves_and_failure_rates:
+      source: scored_rows.json
+      columns:
+      - joint_integration_defect_rad
+      - gravity_pose_defect
+      - gravity_norm_error
+      - rotation_norm_error
+      - joint_limit_violation_fraction
+      - unstable
+      - numerical_divergence
+      selection: {}
+    batch1_policy_plus_model_latency_p95_ms:
+      source: provenance.json
+      columns:
+      - policy_plus_model_latency_p95_ms
+      selection:
+        mode: A
+        partition: test_id
+  world_model_design:
+    horizons_steps:
+    - 10
+    - 50
+    - 100
+    - 250
+    - 500
+    - 1500
+    horizons_seconds:
+    - 0.2
+    - 1
+    - 2
+    - 5
+    - 10
+    - 30
+    roles:
+    - short_dynamics
+    - initial_autonomous
+    - medium_fidelity
+    - long_accuracy
+    - extended_accuracy
+    - stability_stress
+    levels: []
+    difficulties: []
+    partitions:
+    - test_id
+    - test_command_shift
+    population: one fixed fork per held-out episode; 256 planned episode IDs per partition
+    modes:
+      A: same recorded future departure actions for every model, open loop after the initial history
+      B: Same frozen actor and initial history, each model's predicted observation drives its own future
+        actions. Compare with a simulator branch using the same frozen actor on true observations. Report
+        trajectory gaps as closed-loop outcome discrepancies, never as identical-action prediction errors.
+      B_shadow: Replay each B branch's complete generated action sequence in the simulator, reconstructed
+        by deterministic replay of the identical pre-fork prefix. Compare that model with its own action-matched
+        simulator reference; do not rank these as though every variant received the same future action
+        sequence.
+    no_future_corrections: no periodic history refresh, pose alignment, true contacts or simulator state
+      injection after the fork
+    alignment: One initial translation and yaw alignment only. Compute initial tilt from measured gravity,
+      then integrate. Apply the initial transform once to the entire trajectory. Score COM translation
+      against ground-truth COM; score link translation separately using fixed nominal COM offset. Ground-plane
+      height is not observable from this input and is not a model correction.
+    physical_score: 'For each fork and K, sqrt(mean over k=1..K of mean of six blocks: ||p_COM_hat-p_COM||^2/(1
+      m)^2; geodesic(R_hat,R)^2/(1 rad)^2; ||v_body_hat-v_body||^2/(1 m/s)^2; ||omega_body_hat-omega_body||^2/(1
+      rad/s)^2; mean_j (q_hat-q)^2/(0.5 rad)^2; mean_j (qdot_hat-qdot)^2/(5 rad/s)^2)). Average forks
+      equally within partition and seed, then seeds equally.'
+    physical_metrics:
+    - COM_and_link_translation_RMSE_m
+    - orientation_geodesic_RMSE_rad
+    - roll_pitch_error_rad
+    - gravity_RMSE
+    - body_linear_velocity_RMSE_m_s
+    - body_angular_velocity_RMSE_rad_s
+    - joint_position_RMSE_rad
+    - joint_velocity_RMSE_rad_s
+    - torque_RMSE_Nm
+    - per_fork_trajectory_NRMSE_p90_p95
+    consistency_metrics:
+    - joint_endpoint_integration_defect_rad
+    - gravity_transport_defect
+    - gravity_norm_error
+    - gravity_versus_pose_defect
+    - quaternion_norm_error
+    - R_transpose_R_error
+    - determinant_R_error
+    - joint_limit_excess_rad
+    - contact_transition_F1
+    - nominal_plane_FK_foot_penetration_m
+    - predicted_support_foot_speed_m_s
+    behaviour_metrics:
+    - linear_and_yaw_command_tracking_RMSE
+    - gait_frequency_Hz
+    - per_leg_phase_error_without_time_warp
+    - joint_amplitude_error
+    - foot_contact_duty_factor
+    - unstable_fraction
+    - numerical_divergence_fraction
+    - stable_duration_s
+    - exact_fidelity_duration_s
+    instability: First nonfinite prediction, absolute roll or pitch above pi/3 for five consecutive steps,
+      or any joint exceeding its hard asset limit by 0.25 rad for five consecutive steps. Report predicted
+      base-contact events separately (threshold sigmoid >= 0.5), and do not equate that label with true
+      falls.
+    fidelity_duration: first time physical trajectory NRMSE exceeds 1.0 for ten consecutive steps; descriptive
+      threshold only
+    censoring: Stop exact physical metrics at the first true reference termination; never compare against
+      a post-reset state. Report each horizon's eligible and finite denominators, initialized population,
+      failures, and paired common support. Model-invalid values are failures, never silently excluded
+      as complete cases. Report the failure-aware capped physical score (cap 10, including invalid model
+      samples) alongside finite-pair RMSE. Support requires no increased failure rate and improvement
+      in both views. Initial/reference failure is not assigned zero error. Thirty-second stability is
+      always reported separately.
+    footprint_diagnostic_limit: Relative plane penetration uses the initial plane offset for scoring only;
+      absent root height makes absolute terrain contact underobserved. Label nominal geometry and gravity-only
+      support proxies explicitly; neither proves force balance.
+    baseline_pose_readout: For B0, use the same angular-velocity integration for primary pose scoring;
+      additionally report gravity-derived tilt with integrated yaw as a separate state-readout diagnostic.
+      Never privilege one variant with a different pose integrator.
+    efficiency: One specified device/dtype, warm 1000 calls, time 10000 steps with synchronization; report
+      median/p95/p99 batch-one model and model-plus-frozen-policy latency, batch-256 throughput, peak
+      allocated memory, training wall time and GPU-hours. Render cost and collection cost separately.
+      No simulator loaded in neural timing.
+  videos:
+    reuse: existing model parsing, articulated assets, command arrows and plotting conventions
+    required_boundary: learned states and deterministic kinematics only; kinematic mesh playback must
+      never call sim.step to evolve predictions
+    state_source: immutable saved scored trajectories, timestamps, episode IDs, action sequences and checkpoint
+      digests
+    selection: four fixed ID episode IDs [0, 64, 128, 192], seed 11; add the worst B0 two-second episode
+      and retain failures
+    outputs:
+    - time_aligned_actual_imagined_articulation
+    - translation_and_geodesic_error_curves
+    - joint_angle_velocity_curves
+    - consistency_versus_horizon
+    - side_by_side_B0_B1_B2_B3_accel_and_E3_direct
+    intervention_control: B0_visual must change only displayed pose, never future state or policy observations
+    future_interface: time_s, local_position, quaternion_wxyz, physical_joint_angles, physical_joint_velocities,
+      joint_names, command, raw_action, contact_logits, failure_flags
+minimum_meaningful_effect:
+  relative_reduction_2s: 0.2
+  relative_reduction_mean_1_2_5s: 0.15
+  unit: fraction of matched B0 error, averaged with equal training-seed weight
+cost_accounting:
+- allocated GPU-seconds from all existing queue event logs, conservatively rounded, independently per
+  device
+- training updates and windows
+- collection transitions
+- evaluation forks and stochastic sample streams
+- wall time, peak memory, latency, throughput and video rendering cost
+smoke_gate:
+  enabled: true
+  iterations: 1000
+  auto_full: true
+  log_roots:
+    B0: logs/rsl_rl/anymal_d_world_model
+    B1: logs/rsl_rl/anymal_d_world_model
+    B2: logs/rsl_rl/anymal_d_world_model
+    E3_direct_velocity: logs/rsl_rl/anymal_d_world_model
+retry_policy:
+  max_attempts: 2
+  allowed_reasons:
+  - vm_died
+  - infrastructure_interruption
+  selection: first_valid_identical_attempt
+  automatic_retries: false
+support_criteria:
+- The predeclared B2 versus B0 ID-test effect meets both meaningful-effect thresholds and all constraints.
+- Both of the two user-authorized independent training seeds improve; effects are descriptive and no aggregate
+  confidence interval or statistical-significance claim is made.
+- Autonomous-action shadow evaluation improves two-second physical error by at least 15 percent with no
+  behavioural constraint failure.
+- E1 and E2 ground-truth component effects and every negative result are reported separately.
+contradiction_criteria:
+- Complete valid evidence shows worse ground-truth physical prediction or a failed constraint.
+- Only internal consistency or rendering improves while ground-truth prediction fails the meaningful-effect
+  thresholds.
+inconclusive_criteria:
+- Two training seeds cannot establish a precise population effect; label population-level support inconclusive
+  even if descriptive engineering targets are met.
+- Fewer than two valid seed pairs exist; show raw effects and do not complete the planned comparison.
+- Matched provenance, action timing, reset boundaries, reference coverage or simulator-free rendering
+  cannot be verified.
+world_model:
+  algorithm_repository: ../rsl_rl_rwm-agent-rwm-physical-consistency
+  algorithm_commit: a496265b17eddd442ecdc8885dce67e28349e170
+  push_remote: research
+  policy: logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+  policy_sha256: 630a6e4394314a7e96c3844e3b5735e9f730617e23e0db4f53fea440ed2e2578
+  dataset: logs/world_model_datasets/rwm-physical-consistency
+  pilot_seed: 11
+  max_job_seconds: 7200
+  max_total_GPU_hours: 24.0
+  max_GPU_hours_per_device: 12.0
+  evaluation_reserve_GPU_hours: 6.0
+  collection:
+    train:
+      batches: 4
+      num_envs: 256
+      seed: 4100
+      command_seed: 5100
+    validation:
+      batches: 1
+      num_envs: 128
+      seed: 4200
+      command_seed: 5200
+    test_id:
+      batches: 1
+      num_envs: 256
+      seed: 4300
+      command_seed: 5300
+    test_command_shift:
+      batches: 1
+      num_envs: 256
+      seed: 4400
+      command_seed: 5400
+  data_recipe:
+    format: immutable W&B dataset artifact with per-episode arrays, manifest and SHA256 for every file
+    partitions:
+      train:
+        episodes: 1024
+        seed: 4100
+        command_seed: 5100
+      validation:
+        episodes: 128
+        seed: 4200
+        command_seed: 5200
+      test_id:
+        episodes: 256
+        seed: 4300
+        command_seed: 5300
+      test_command_shift:
+        episodes: 256
+        seed: 4400
+        command_seed: 5400
+    maximum_transitions_per_episode: 2000
+    maximum_total_transitions: 3328000
+    termination_rule: Stop at first physical termination, never concatenate post-reset states. Persist
+      the pre-reset terminal state and distinct terminated/truncated/reset flags. Do not discard short
+      or failed episodes or silently replace them with successes.
+    id_commands: Every 5 seconds, sample vx, vy, yaw rate independently uniformly in [-1, 1] using each
+      episode's recorded command RNG stream. Two percent of episodes have an all-zero standing schedule.
+      All variants consume identical realized arrays.
+    command_shift: 'Equal 64-episode strata: constant (vx=1.2,vy=0,wz=0); constant (0,1.2,0); constant
+      (0.5,0,1.2); reversal (+0.8,0,0) / (-0.8,0,0) every 2 seconds. Standing fraction is zero in this
+      challenge partition. Report strata separately.'
+    transition_schema: s[t] is the pre-action state; u[t] is the applied departure action producing s[t+1].
+      last_action in the policy observation is u[t-1]. Record raw actions and processed actuator targets
+      separately. A boundary adapter may convert to the existing arrival-action buffer convention, in
+      which action[t+1] pairs with s[t].
+    recorded_fields:
+    - physical 45-state, raw/processed actions, commands and timestamps
+    - root-link pose and root-COM pose, body velocities and joint defaults/order
+    - contact sensor force-history labels, body contacts, true reset/termination/timeout masks
+    - material, actuator, geometry, nominal COM offset and resolved environment metadata
+    - episode seed, command seed, environment ID and simulator replay prefix identity
+    training_windows: Length 40 states for the existing loss convention, history 32 and eight targets;
+      supply all eight correctly aligned departure actions. Sample episodes uniformly, then valid starts
+      uniformly within episode, with replacement. No cross-episode window; no fake zero-padded history.
+      Keep training/validation/test episodes disjoint.
+    evaluation_fork_step: 281
+    initialization: Use the 32 genuine states ending at step 281 after a 250-step settling prefix. Episodes
+      ending earlier are initialization failures, included in the population table, not replaced. Replay
+      the identical simulator prefix for reference branches.
+    validation_selection_windows: one fixed fork per validation episode, manifest fixed before training
+    leakage: no test use for normalization, training, checkpoint selection, debugging or variant changes
+  training:
+    independently_trained_variants:
+    - B0
+    - B1
+    - B2
+    - E3_direct_velocity
+    ensemble_size: 1
+    verified_backbone:
+      type: gru
+      layers: 2
+      hidden_units: 256
+      separate_auxiliary_backbone: true
+      head_hidden_units: 128
+    history_steps: 32
+    autoregressive_forecast_steps: 8
+    optimizer:
+      type: Adam
+      learning_rate: 0.001
+      betas:
+      - 0.9
+      - 0.999
+      epsilon: 1.0e-08
+      weight_decay: 0.0
+      gradient_clip_norm: 1.0
+    learning_rate_schedule: constant
+    batch_windows: 256
+    pilot:
+      seeds:
+      - 11
+      optimizer_updates: 1000
+      technical_only: true
+      excluded_from_final_seed_aggregates: true
+    final:
+      seeds:
+      - 11
+      - 22
+      optimizer_updates: 20000
+    pairing: same per-seed data-window/bootstrap index streams; same shared-shape initial weights; explicit
+      random-stream manifests
+    state_normalization: freeze original configured 45-dimensional mean/std, epsilon 1.0e-8; no refit
+      on validation/test
+    action_normalization: original zero mean and unit std
+    stochastic_training: 'Preserve sample-based reconstructed state MSE: sample independent dynamic outputs,
+      integrate/reconstruct, re-normalize the 45-state vector, and sum its squared error. Never add independent
+      post-reconstruction noise to gravity or q. Bounds apply only to independent logstd outputs. No acceleration-label
+      loss. Preserve the original two independent random draws per forecast step: one loss draw and a
+      separate autoregressive-feedback draw. Reconstruct each from the same current feedback state; only
+      the feedback draw advances persistent orientation/joint state. Couple corresponding RNG streams
+      across variants.'
+    loss: Mean over batch and eight forecast steps of sum over 45 normalized squared state errors, plus
+      original logstd bound regularizer (weight 1), contact BCEWithLogits (weight 1) and base-contact
+      BCEWithLogits (weight 1). Separate auxiliary GRU remains teacher-forced. Sequence/KL/extension contributions
+      are zero for the present GRU single-prediction configuration.
+    hidden_state: zero both GRUs at window start, warm through 32 steps, retain within the forecast, no
+      detach inside window
+    checkpoint_selection: Save at updates 1000, 2000, ..., 20000. Select minimum validation recorded-action
+      physical trajectory NRMSE at two seconds using deterministic mean rollouts; break ties by earliest
+      update. Fixed total training budget, no early stopping. Report final-checkpoint sensitivity as secondary,
+      never select using test data.
+    stochastic_evaluation: primary deterministic mean; 16 fixed-random-stream samples per test-ID fork
+      as diagnostic
+  integration:
+    orientation_storage: unit quaternion wxyz; R maps body vectors into the local inertial frame
+    initialization: unit gravity determines tilt; yaw = 0; COM translation = 0; no future correction
+    orientation_update: R_next = R * ExpSO3(dt * omega_body_next)
+    gravity_update: g_body_next = transpose(R_next) * [0, 0, -1]
+    joint_update: q_absolute_next = q_absolute + dt * qdot_absolute_next
+    joint_relative_boundary: subtract default joint positions and velocities only at the state/policy
+      boundary
+    translation_update: p_COM_next = p_COM + dt * R_next * v_COM_body_next
+    root_link_rendering: p_link = p_COM - R * nominal_root_COM_offset_body
+    body_acceleration_semantics: B3 uses component derivative d(v_body)/dt, not an IMU specific force
+      or inertial acceleration. A physical force model would require d(v_body)/dt = R^T a_world - omega_body
+      cross v_body. That different force-model ablation is outside this campaign.
+    integrator_choice: endpoint first-order scheme fixed for the minimum campaign
+    deferred_integrator_ablation: Compare old-velocity Euler versus endpoint versus trapezoidal integration
+      only in a separately approved matched experiment. Do not call endpoint averaging a true midpoint
+      dynamics integrator without evaluating dynamics at the midpoint.
+    no_clamps: do not clamp positions, velocities or gravity to improve reported physical outcomes
+  technical_checks:
+  - No future observations or policy updates; actor/normalizer/geometry/prefix/hash verification required.
+  - Abort collection before saving if resolved USD FK disagrees with actual feet by more than 2 mm.
+  - Pilot must pass existing CPU-loadable checkpoint and complete finite-loss stream checks for all four
+    variants.
+  - Full campaign launches only if measured pilot extrapolation plus spent time and 6 GPUh evaluation
+    reserve fits total ceiling.
+  - All GPU phases including timing and rendering use cumulative 12h/device timeouts and exclusive campaign
+    lock.
+  - One immutable dataset artifact is published once, its exact version and manifest SHA are verified
+    by every trainer.
+  - Shadow prefix equality is required on every initialized episode; initialization-failure masks must
+    agree, while post-reset states of invalid histories never contribute to scoring.
+  - Publication requires every predeclared illustrative replay or a digest-bound zero-frame failure outcome;
+    video references stop at true termination. Raw scored arrays remain the evidence authority.
+  equality_controls:
+    B0_visual: identical stored predictions/actions; pose is a readout-only consumer
+    B3_accel: same B2 checkpoint; dv/dt reparameterization at dt=0.02; no new learned model
+  phase_commands:
+  - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
+    --phase assemble
+  - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
+    --phase train
+  - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
+    --phase evaluate
+  - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
+    --phase render
+  - python scripts/research_runs.py world-model --protocol research/rwm-physical-consistency/protocol.yaml
+    --phase publish
+  publication: One verified evaluation artifact per training run, all selected A/B/shadow cells, final
+    A sensitivity, stochastic diagnostics and illustrative replay identities; no scalar reducer is invented
+    for curve bundles.
+  fidelity_duration_convention: threshold detection after ten consecutive steps above NRMSE 1; instability
+    detection after five tipped/limit steps or immediately at nonfinite state.
+  checkpoint_selection_metric: Mean failure-aware cap-10 two-second validation score on fixed reference-eligible
+    forks; no eligible forks aborts training. Earliest update breaks ties; finite-pair scores and denominators
+    remain separate.
+  pilot_max_job_seconds: 900
+  model_latency_overhead_statistic: batch-one model p95, compared on the same GPU model and dtype; policy-plus-model
+    constraint also uses p95
+  reserved_evaluation_units: 200000
+  evaluation_reservation_basis: 'Conservative configured-episode reservation covering both allowed attempts:
+    selected A/B/shadow and final-A forks, 16 stochastic streams, validation at every checkpoint and pilot,
+    collection, simulator shadows, and illustrative replays; under 200000 units for this fixed campaign.
+    This technical repair consumes the one additional authorized protocol/implementation pair. Earlier
+    reservations and allocated time remain charged; no recollection or scientific follow-up is authorized.'
+  decision_reducers:
+    primary_populations: test_id, validation-selected checkpoints, A; pair by all declared factors, require
+      common reference-eligible IDs. Cap-10 includes every model-invalid prediction in that population;
+      finite-pair view uses common finite IDs with denominators shown.
+    meaningful_effects: 'Require BOTH cap-10 and finite-pair views to meet: equal-training-seed mean relative
+      reduction >=20% at 2s, >=15% for ratio of mean 1/2/5s scores within seed, >=15% at 2s in B_shadow.
+      Both training seeds must improve for each corresponding meaningful-effect view. No aggregate confidence
+      interval or population-support claim.'
+    short_horizon: 'Each seed, test_id A at 0.2s: neither cap-10 nor finite-pair trajectory score may
+      increase >5%.'
+    joint_accuracy: 'Each seed, test_id A at 1/2/5s: joint-position and joint-velocity RMSE on common
+      finite reference-eligible IDs may not increase >5%.'
+    instability: 'Each seed, test_id B at 30s: increase in tipped/joint-limit/nonfinite instability fraction
+      on the matched initialized population <=0.02. Preserve stable duration and all initialization failures
+      separately.'
+    command_tracking: 'Each seed, test_id B at all six horizons: linear and yaw command-tracking RMSE
+      may not increase >10%, on the paired initialized population with finite metrics; model-invalid failures
+      remain separately counted.'
+    numerical_failure: 'Each seed, A and B at every declared horizon: no increase in nonfinite/model-invalid
+      physical-state or integrated-pose prediction fraction on matched initialized IDs. This condition
+      is distinct from the allowed two-percentage-point instability increase. Reference absence is neither
+      a model success nor zero error.'
+    efficiency: 'Each seed: batch-one model p95 latency overhead <=20%; model-plus-frozen-policy p95 <20ms,
+      measured on same GPU model and dtype. Report raw median/p95/p99, batch256 throughput, peak memory
+      and costs.'
+    zero_denominators: Baseline mean <=1e-8, any empty required common population, missing seed/cell,
+      or unavailable constraint gives inconclusive for that criterion, never met. Report absolute effects,
+      all planned/initialized/eligible/finite counts and unmatched coverage.
+    shadow_interpretation: Use common initialized/reference-eligible episode IDs for each paired contrast,
+      but each candidate keeps its own B-generated actions. Improvements are descriptive conditional accuracy
+      effects, not identical-action causal contrasts.
+    coverage: Report simulator initialization failures and true reference terminations separately. Exact
+      prediction metrics stop at true reference termination; behavioral model stability continues separately.
+      Foot geometry and contact proxies are not force-balance evidence.
+  collection_reuse:
+    original_protocol_id: p-36884b9f4ff356725923c7b6
+    source_commit: 759a5e9c240b036b706b48baacb983a17dee20d1
+    files:
+      collect-test_command_shift-0.npz:
+        sha256: a27a29e217cbe3c21feef72663f70ae420d37aaf72765bd7cce00834b2a43ec1
+        metadata_sha256: 4bdae9dbe149048307c76e351ee2643fa6987aea99807393c147fbb5070bb77d
+      collect-test_id-0.npz:
+        sha256: a8d738372b60186ad6511ca839b261fa592a5e1c023184b3464b0f0e4666b7ef
+        metadata_sha256: 431541a3ea92c3725bd4fcb9784d592395496c2f2a5718f6badbc8ce73e7e8be
+      collect-train-0.npz:
+        sha256: 238cfbc6ad99c596fe3c186b4c72809ae5a2e55258c269554c61100c18cff096
+        metadata_sha256: bf5764903232861c7cf4be96ab9cd09bbc64a66785f322390d254dcfd8b6d5db
+      collect-train-256.npz:
+        sha256: 9df2384904a2c5d44100cc28c8c15fdcf67a9b357d9e210ecadf6085d862bf00
+        metadata_sha256: cfd6c513da4aa3b3f480df85d5711863ed108e1b990f9278f3438c42f32dd191
+      collect-train-512.npz:
+        sha256: 53aaa06c3b8bb5a63933f98b438f6ecfdc6536fcc0090af53afe8a9e96b196b1
+        metadata_sha256: 67e0d7079568826145c5cdd71a5681f5bfbedaac5928008fc47fab31016262e7
+      collect-train-768.npz:
+        sha256: a0b96cac860cc1366484fcbe98694cc9d097f9285e18555ad43f26f4c97395b8
+        metadata_sha256: 64c34ec7b3c7eb712799dee33a0882c1163672627dacb3ca6116ec67ff67b56a
+      collect-validation-0.npz:
+        sha256: 497c3a84c609269f46bb712357b63b3403c4d7fd6b83b1982a98769fc48dc506
+        metadata_sha256: 26a86f4bc2ac56f5de8679491b7b32edfae292349951a445d8c8fc5b3f0ce993
+    recollection: false
+    prior_allocated_GPU_hours:
+      0: 0.15472222222222223
+      1: 0.12333333333333334
+    required_environment: OMNI_KIT_ACCEPT_EULA=YES, as in the established simulator preflight
+    authority: Latest user expressly authorized continuation after concrete repair request. One technical
+      pair, no change to scientific method, data, seeds or hard GPU caps.
+assumptions:
+- ASSUMPTION numerical training budget, seeds 11/22, immutable collection recipe, optimizer, validation
+  checkpoint rule, diagnostics and fixed integration scheme are engineering/scientific proposals requiring
+  independent Gate C.
+- ASSUMPTION runtime and asset availability are unmeasured; hard GPU cap never expands for setup, failed
+  attempts, timing or rendering.
+- ASSUMPTION fixed nominal mechanics and deterministic simulator-prefix replay can be verified to 1e-4
+  absolute/relative state/pose tolerance; mismatches invalidate shadow evidence.
+- ASSUMPTION 16 stochastic test-ID streams use seeds 6100..6115 and only recorded actions; they do not
+  create independent training replications.
+- No confidence intervals across two seeds; episode/joint/time counts cannot replace training-seed replication.
+- Repeated visualization is illustrative replay from fixed scored arrays and does not change scored populations.
+- The historic policy run is failed; local checkpoint is finite and CPU policy/export parity passed. This
+  does not relabel that run as complete.
+reporting:
+  compatibility:
+    loss_definition: full reconstructed normalized 45-state sampled MSE; 32 history and 8 autoregressive
+      steps; separately teacher-forced auxiliary BCE; independent-output logstd bounds
+  metrics:
+  - name: train/state
+    scope: train
+    direction: lower
+    unit: sum normalized squared state coordinates
+    aggregation: per_run
+    comparison: loss
+    axis: train/update
+    required: true
+  - name: val/id/trajectory_nrmse_2s
+    scope: train
+    direction: lower
+    unit: dimensionless six-block score
+    aggregation: per_run
+    comparison: evaluation
+    axis: train/update
+    required: true
+  - name: test_id/A/10/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/50/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/100/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/250/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/A/1500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/10/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/50/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/100/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/250/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B/1500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/10/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/50/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/100/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/250/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  - name: test_id/B_shadow/1500/failure_aware_score
+    scope: eval
+    direction: lower
+    unit: dimensionless six-block cap-10 score
+    aggregation: mean_seed
+    reduction: mean over equally weighted reference-eligible episode forks
+    comparison: evaluation
+    required: false
+  artifact_only_outcomes:
+  - constraint_violation_curves_and_failure_rates
+  - autonomous_closed_loop_outcome_discrepancy
+  missing_reference_policy: A metric with zero eligible reference forks is unavailable, never zero; panels
+    with no finite reference coverage must remain explicitly unavailable.

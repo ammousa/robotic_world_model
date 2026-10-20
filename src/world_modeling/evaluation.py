@@ -147,7 +147,7 @@ def timing(model, actor, arrays, metadata):
         samples = []
         for index in range(11000):
             if device.type == "cuda":
-                torch.cuda.synchronize()
+                torch.cuda.synchronize(device)
             start = time.perf_counter()
             if with_policy:
                 applied = actor(physical[:, 0], command, action[:, 0])[:, None]
@@ -155,7 +155,7 @@ def timing(model, actor, arrays, metadata):
                 applied = action
             model(state, applied)
             if device.type == "cuda":
-                torch.cuda.synchronize()
+                torch.cuda.synchronize(device)
             if index >= 1000:
                 samples.append((time.perf_counter() - start) * 1000)
         prefix = "policy_plus_model" if with_policy else "model"
@@ -171,12 +171,12 @@ def timing(model, actor, arrays, metadata):
     for _ in range(1000):
         model(batched, actions)
     if device.type == "cuda":
-        torch.cuda.synchronize()
+        torch.cuda.synchronize(device)
     start = time.perf_counter()
     for _ in range(10000):
         model(batched, actions)
     if device.type == "cuda":
-        torch.cuda.synchronize()
+        torch.cuda.synchronize(device)
     result["batch256_transitions_per_second"] = 2560000 / (time.perf_counter() - start)
     result["peak_allocated_memory_bytes"] = torch.cuda.max_memory_allocated(device) if device.type == "cuda" else None
     result["device"] = torch.cuda.get_device_name(device) if device.type == "cuda" else "CPU"
@@ -199,6 +199,8 @@ def main(argv=None):
     parser.add_argument("--stochastic_streams", type=int, default=0)
     args = parser.parse_args(argv)
     torch.set_num_threads(4)
+    if torch.device(args.device).type == "cuda":
+        torch.cuda.set_device(args.device)
     model, checkpoint = load_model(args.checkpoint, args.device)
     arrays, metadata = read_partition(args.dataset, args.partition)
     if metadata != checkpoint["metadata"] or file_digest(args.policy) != metadata["policy_sha256"]:

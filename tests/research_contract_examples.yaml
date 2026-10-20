@@ -1,0 +1,93 @@
+# Generic hypothesis, protocol and decision used as test fixtures (illustrative names).
+# Unlike the examples in the research-experiment reference, the protocol keeps non-empty evaluation levels
+# so the cell-matrix machinery stays covered.
+schema_version: 1
+group: promo-router
+hypothesis_version: 1
+title: Deployment-context preference routing
+claim: Context routing improves tracking over fixed preferences without increasing falls.
+mechanism: An MLP maps deployment context to the preference vector.
+changes: [preference router]
+held_fixed: [PROMO policy, environment, reward, training budget]
+inputs:
+  deployable: [command, proprioception]
+  privileged: []
+gradient_ownership: Router objective trains router only; PROMO is frozen.
+baselines: [fixed preference]
+primary_metric: {name: lin_vel_tracking_rmse, direction: lower, unit: m/s}
+secondary_metrics: [preference_variance, preference_entropy, inference_latency_ms]
+constraints: [fall rate increase at most 0.01]
+minimum_meaningful_effect: {absolute: 0.02, unit: m/s}
+evaluation_unit: One environment's first episode in a declared evaluation cell.
+paired_factors: [seed, level, env_id, episode_id]
+anticipated_confounders: [random streams may diverge after reset, router may be constant]
+support_if: [tracking reduction at least 0.02 m/s and fall constraint met]
+contradict_if: [tracking worsens or fall constraint fails]
+inconclusive_if: [low-N seed variability exceeds effect, incomplete matched evidence]
+checkpoint_export_impact: Add router weights and deployment context to export; test roundtrip.
+notes: ASSUMPTION frozen PROMO and thresholds; Gate A must approve these choices.
+---
+schema_version: 1
+group: promo-router
+hypothesis_id: h-<computed-by-validate-contract>
+protocol_version: 1
+project: rwm-explore
+variants:
+  fixed:
+    task: train-fixed-rough
+    eval_task: eval-fixed-rough
+    overrides: []
+    eval_overrides: []
+  router:
+    task: train-router-rough
+    eval_task: eval-router-rough
+    overrides: ['agent.policy.router.hidden_dims=[64]']
+    eval_overrides: []
+seeds: [1, 2, 3]
+training_budget: {iterations: 3000, num_envs: 2048}
+compute_pool: [0, 1]
+baseline_variants: [fixed]
+checkpoint_rule: final
+evaluation:
+  population: First episode of each environment per level and evaluation seed.
+  seeds: [41, 42]
+  scenarios: []
+  levels: [0, 4, 8]
+  difficulties: []
+  num_envs: 150
+  num_episodes: 1
+  episode_sampling: first_episode_per_env
+  paired_factors: [seed, level, env_id, episode_id]
+  primary_metric: {name: lin_vel_tracking_rmse, direction: lower, unit: m/s}
+  secondary_metrics: [preference_variance, preference_entropy, inference_latency_ms]
+  metric_reducers:
+    preference_variance: {column: preference_variance, reduction: mean}
+    preference_entropy: {column: preference_entropy, reduction: mean}
+    inference_latency_ms: {column: inference_latency_ms, reduction: mean}
+  constraints: [fall rate increase at most 0.01]
+  profile: general
+minimum_meaningful_effect: {absolute: 0.02, unit: m/s}
+cost_accounting: [environment steps, updates, wall time, GPU-hours, latency]
+smoke_gate:
+  enabled: true
+  iterations: 5
+  auto_full: true
+  log_roots: {fixed: logs/rsl_rl/fixed, router: logs/rsl_rl/router}
+retry_policy:
+  max_attempts: 2
+  allowed_reasons: [vm_died, infrastructure_interruption]
+  selection: first_valid_identical_attempt
+support_criteria: [tracking reduction at least 0.02 m/s and fall constraint met]
+contradiction_criteria: [tracking worsens or fall constraint fails]
+inconclusive_criteria: [low-N seed variability exceeds effect, incomplete matched evidence]
+assumptions: [ASSUMPTION seeds and budget, ASSUMPTION seed-level pairing only; random schedules unverified]
+---
+schema_version: 1
+group: promo-router
+decision: extend
+chosen_variants: []
+rejected_variants: []
+status: inconclusive
+based_on_protocol: p-<executed-protocol-id>
+based_on_report: https://wandb.ai/<entity>/<project>/reports/<report>
+researcher_note: Researcher requested additional seeds before deciding what to keep.

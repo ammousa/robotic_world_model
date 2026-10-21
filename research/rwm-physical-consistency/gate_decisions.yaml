@@ -349,3 +349,32 @@
   mode: unattended
   at: '2026-10-21T10:22:42.199560+00:00'
   receipt_id: r-80751566e6865fcbaebef60c
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: 'Approve only hashed CPU plan v2: strict publication retry, W&B-only analysis
+    and existing-media postprocessing. Prior failure evidence and original numerical
+    identities remain preserved. Four mechanical reservations confer no additional
+    numerical execution, GPU work, seeds or scientific follow-ups.'
+  risk: Publication success is not scientific support; two-seed population inference
+    remains inconclusive and composite media remain illustrative.
+  next_action: Commit/push reviewed comparison changes, record the distinct clean
+    publisher identity, execute only hashed CPU plan v2, then submit evidence for
+    independent review.
+  evidence:
+  - research/rwm-physical-consistency/workflow.yaml
+  - research/rwm-physical-consistency/protocol.yaml
+  - /tmp/rwm-physical-review/postprocessing-command-plan.v2.json#sha256=510aa9afcf2d3510cbf06ad5a8ebe9e1cd2ab3d4731aaf911f798aceb8d63cc6
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-e978d7ce1920d7f0a912c164
+    protocol_id: p-9b1252337a3c6bf5b82b29b8
+    prior_receipts:
+      A: r-28e039f636fe2dc4e9dd5436
+      B: r-80751566e6865fcbaebef60c
+  workflow_id: w-935869612d31598d270a4b29
+  reserved_training_units: 336000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-21T10:24:29.081214+00:00'
+  receipt_id: r-0aa1b292bc49d10d79eebc13

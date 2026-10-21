@@ -53,3 +53,32 @@ def test_world_model_reservation_includes_stochastic_and_replay_populations():
 
     with pytest.raises(ValueError, match="reservation"):
         reservations(protocol)
+
+
+def test_carried_global_budget_is_enforced_by_equal_device_shares(tmp_path):
+    from research_workflow.gpu_budget import campaign_hours_per_gpu
+
+    limits = {
+        "max_GPU_hours_per_device": 12.0,
+        "max_total_GPU_hours": 24.0,
+        "prior_comparison_GPU_hours": 9.7347368975,
+        "remaining_total_GPU_hours": 14.2652631025,
+        "prior_device_GPU_hours": {
+            "0": 0.15472222222222223,
+            "1": 0.12333333333333334,
+            "2": 4.696403564166667,
+            "3": 4.760277777777778,
+        },
+    }
+    hours = campaign_hours_per_gpu(limits, [0, 1])
+    assert hours == pytest.approx(7.13263155125)
+    assert 2 * hours + limits["prior_comparison_GPU_hours"] <= 24.0
+    for gpu in [0, 1]:
+        assert hours + limits["prior_device_GPU_hours"][str(gpu)] <= 12.0
+        command = timeout_argv(["python", "job.py"], tmp_path, gpu, hours, 100000)
+        assert int(command[3][:-1]) < hours * 3600
+    assert campaign_hours_per_gpu({"max_GPU_hours_per_device": 12}, [2, 3]) == 12
+    with pytest.raises(ValueError, match="reconcile"):
+        campaign_hours_per_gpu({**limits, "remaining_total_GPU_hours": 24}, [0, 1])
+    with pytest.raises(ValueError, match="invalid"):
+        campaign_hours_per_gpu({**limits, "max_GPU_hours_per_device": float("nan")}, [0, 1])

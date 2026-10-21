@@ -157,7 +157,7 @@ def test_actual_publisher_tags_validate_and_preserve_full_checkpoint_digest(tmp_
         "compute_pool": [2, 3],
         "protocol_id": "p-" + "a" * 24,
         "hypothesis_id": "h-" + "b" * 24,
-        "world_model": {"dataset": "dataset"},
+        "world_model": {"dataset": "dataset", "pilot_seed": 11},
     }
     train = SimpleNamespace(
         state="finished",

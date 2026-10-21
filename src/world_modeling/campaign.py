@@ -18,6 +18,7 @@ import wandb
 from research_workflow import checkpoint_digest as file_digest
 from research_workflow import load_protocol
 from research_workflow.governance import launch_approval_problems, read_workflow
+from research_workflow.gpu_budget import campaign_hours_per_gpu
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -48,7 +49,7 @@ def preflight(protocol_path):
         problems.append("algorithm source is not the approved clean commit")
     limits = workflow["mandate"]["limits"]
     if protocol["compute_pool"] != limits["compute_pool"] or set(protocol["seeds"]) - set(
-        limits["allowed_training_seed_values"]
+        limits.get("allowed_training_seed_values", limits.get("proposed_training_seeds", []))
     ):
         problems.append("device or training-seed restriction differs from user mandate")
     env = rr.source_env(
@@ -70,7 +71,7 @@ def preflight(protocol_path):
     os.environ["RESEARCH_PUSH_REMOTE"] = settings["push_remote"]
     budget = {
         "log_root": ROOT / "logs/queue" / protocol["group"],
-        "hours_per_gpu": limits["max_GPU_hours_per_device"],
+        "hours_per_gpu": campaign_hours_per_gpu(limits, protocol["compute_pool"]),
         "max_job_seconds": settings["max_job_seconds"],
     }
     return protocol, rr, env, budget
@@ -154,7 +155,12 @@ def assemble_dataset(protocol, rr, env, budget):
             ):
                 raise ValueError("saved collection differs from the approved immutable source and hashes")
         parts.append(path)
-    metadata = assemble(parts, ROOT / settings["dataset"])
+    if inherited := settings.get("dataset_partition_reuse"):
+        metadata = assemble(
+            parts, ROOT / settings["dataset"], reuse={**inherited, "dataset": ROOT / inherited["dataset"]}
+        )
+    else:
+        metadata = assemble(parts, ROOT / settings["dataset"])
     artifact = wandb.Artifact(
         protocol["group"] + "-dataset",
         type="dataset",
@@ -409,16 +415,22 @@ def evaluate(protocol, rr, env, budget):
 def render(protocol, rr, env, budget):
     settings = protocol["world_model"]
     cells = list(trained_cells(protocol, rr))
-    baseline = next(directory for variant, seed, directory, _, _ in cells if variant == "B0" and seed == 11)
+    baseline = next(
+        directory for variant, seed, directory, _, _ in cells if variant == "B0" and seed == settings["pilot_seed"]
+    )
     rows = json.loads((baseline / "world_model_eval/test_id-A/scored_rows.json").read_text())
     candidates = [row for row in rows if row["horizon_steps"] == 100 and row["reference_eligible"]]
     worst = max(candidates, key=lambda row: row["failure_aware_score"])["episode_id"] if candidates else 0
     ids = sorted({0, 64, 128, 192, worst})
     jobs = []
     for variant, seed, directory, _, _ in cells:
-        # All training runs receive a fixed-ID illustrative replay; seed 11 also gets
+        # All training runs receive a fixed-ID illustrative replay; the pilot seed also gets
         # the four strata and the predeclared worst-baseline case in A and B.
-        selection = [(0, "A")] if seed != 11 else [(episode, mode) for episode in ids for mode in ("A", "B")]
+        selection = (
+            [(0, "A")]
+            if seed != settings["pilot_seed"]
+            else [(episode, mode) for episode in ids for mode in ("A", "B")]
+        )
         for episode, mode in selection:
             output = directory / "world_model_eval/videos" / f"{mode}-episode{episode}.mp4"
             prediction = directory / f"world_model_eval/test_id-{mode}/predictions.npz"
@@ -433,7 +445,7 @@ def render(protocol, rr, env, budget):
                 "--num_envs",
                 "2",
                 "--seed",
-                "4300",
+                str(settings["collection"]["test_id"]["seed"]),
                 "--checkpoint",
                 settings["policy"],
                 "--world_model_replay",

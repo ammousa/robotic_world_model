@@ -253,7 +253,11 @@ def publish(protocol, cells):
     }
     api = wandb.Api()
     checked = []
-    baseline = next(directory for variant, seed, directory, _, _ in cells if variant == "B0" and seed == 11)
+    baseline = next(
+        directory
+        for variant, seed, directory, _, _ in cells
+        if variant == "B0" and seed == protocol["world_model"]["pilot_seed"]
+    )
     baseline_rows = json.loads((baseline / "world_model_eval/test_id-A/scored_rows.json").read_text())
     candidates = [row for row in baseline_rows if row["horizon_steps"] == 100 and row["reference_eligible"]]
     worst = max(candidates, key=lambda row: row["failure_aware_score"])["episode_id"] if candidates else 0
@@ -302,7 +306,11 @@ def publish(protocol, cells):
                     if len(streams) != len(ids) or ids != expected:
                         raise ValueError("stochastic diagnostic streams incomplete or duplicated")
                     stochastic = streams
-        selection = [(0, "A")] if seed != 11 else [(episode, mode) for episode in replay_ids for mode in ("A", "B")]
+        selection = (
+            [(0, "A")]
+            if seed != protocol["world_model"]["pilot_seed"]
+            else [(episode, mode) for episode in replay_ids for mode in ("A", "B")]
+        )
         videos = verify_videos(
             directory / "world_model_eval", root / protocol["world_model"]["dataset"] / "metadata.json", selection
         )
@@ -367,7 +375,7 @@ def publish(protocol, cells):
                     run.summary["efficiency/" + key] = value
             run.summary["population_inference"] = "inconclusive_two_training_seeds"
             run.summary["campaign_cost"] = campaign_cost
-            if variant == "B0" and seed == 11:
+            if variant == "B0" and seed == protocol["world_model"]["pilot_seed"]:
                 ledger = wandb.Artifact(
                     protocol["group"] + "-queue-cost-evidence", type="gpu-accounting", metadata=campaign_cost
                 )

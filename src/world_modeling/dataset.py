@@ -4,12 +4,13 @@ import argparse
 import copy
 import json
 import numpy as np
+import shutil
 from pathlib import Path
 
 from .core import file_digest
 
 
-def assemble(parts, output):
+def assemble(parts, output, *, reuse=None):
     output = Path(output)
     if (output / "metadata.json").exists():
         raise FileExistsError("dataset manifest already exists")
@@ -49,9 +50,47 @@ def assemble(parts, output):
             raise ValueError("resolved mechanics/actuators/materials differ across collection batches")
         mechanics = resolved
         grouped.setdefault(info["spec"]["partition"], []).append((path, info))
-    if set(grouped) != {"train", "validation", "test_id", "test_command_shift"}:
+    inherited, parent = {}, None
+    if reuse:
+        parent_root = Path(reuse["dataset"])
+        if file_digest(parent_root / "metadata.json") != reuse["metadata_sha256"]:
+            raise ValueError("parent dataset manifest differs from approved immutable source")
+        parent = json.loads((parent_root / "metadata.json").read_text())
+        if metadata != {key: parent[key] for key in identity}:
+            raise ValueError("parent and fresh collection mechanics/normalization/policy differ")
+        if not reuse["partitions"] or set(reuse["partitions"]) - {"train", "validation"}:
+            raise ValueError("only immutable training/validation partitions may be inherited")
+        for name, expected in reuse["partitions"].items():
+            if name in grouped or expected != parent["partitions"][name]:
+                raise ValueError("parent partition declaration overlaps or differs")
+            entry = parent["partitions"][name]
+            if Path(entry["file"]).name != entry["file"]:
+                raise ValueError("parent partition filename must be local to its manifest")
+            source = parent_root / entry["file"]
+            if file_digest(source) != entry["sha256"]:
+                raise ValueError("parent partition bytes changed")
+            for record in parent["collection_records"][name]:
+                resolved = copy.deepcopy(record["resolved_config"])
+                resolved.pop("seed", None)
+                population = resolved["scene"].pop("num_envs")
+                if resolved["scene"]["terrain"].pop("num_envs") != population or resolved != mechanics:
+                    raise ValueError("parent resolved mechanics differ from fresh collection")
+            inherited[name] = (source, entry)
+    if set(grouped) | set(inherited) != {"train", "validation", "test_id", "test_command_shift"}:
         raise ValueError("all four declared partitions are required")
     manifest = {**metadata, "schema_version": 1, "partitions": {}, "collection_specs": {}, "collection_records": {}}
+    for name, (source, entry) in inherited.items():
+        target = output / entry["file"]
+        if target.exists():
+            raise FileExistsError(target)
+        shutil.copyfile(source, target)
+        if file_digest(target) != entry["sha256"]:
+            raise ValueError("inherited partition copy differs from immutable bytes")
+        manifest["partitions"][name] = copy.deepcopy(entry)
+        manifest["collection_specs"][name] = copy.deepcopy(parent["collection_specs"][name])
+        manifest["collection_records"][name] = copy.deepcopy(parent["collection_records"][name])
+    if reuse:
+        manifest["parent_dataset"] = {key: value for key, value in reuse.items() if key != "dataset"}
     for name, entries in grouped.items():
         chunks = [dict(np.load(path)) for path, _ in entries]
         arrays = {key: np.concatenate([chunk[key] for chunk in chunks]) for key in chunks[0]}

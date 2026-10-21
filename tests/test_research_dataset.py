@@ -158,3 +158,90 @@ def test_resume_validates_raw_provenance_before_assembly_without_queue(collectio
     monkeypatch.setattr(dataset, "assemble", assembly_only)
     with pytest.raises(ValueError if tamper else ReachedAssembly):
         campaign.assemble_dataset(protocol, None, {}, {"log_root": tmp_path})
+
+
+def test_followup_reuses_training_validation_exact_bytes_and_rejects_parent_tamper(collection, tmp_path):
+    parts, _, _ = collection
+    parent_root = tmp_path / "parent"
+    parent = assemble(parts, parent_root)
+    reuse = {
+        "dataset": parent_root,
+        "metadata_sha256": file_digest(parent_root / "metadata.json"),
+        "artifact": "entity/project/parent:v0",
+        "artifact_digest": "pinned-digest",
+        "partitions": {name: parent["partitions"][name] for name in ("train", "validation")},
+    }
+    fresh = [p for p in parts if "test_" in p.name]
+    result = assemble(fresh, tmp_path / "followup", reuse=reuse)
+    for name in ("train", "validation"):
+        assert (parent_root / f"{name}.npz").read_bytes() == (tmp_path / "followup" / f"{name}.npz").read_bytes()
+        assert result["collection_records"][name] == parent["collection_records"][name]
+        assert result["partitions"][name] == parent["partitions"][name]
+    assert result["parent_dataset"]["artifact"] == reuse["artifact"]
+    assert "dataset" not in result["parent_dataset"]
+    with (parent_root / "train.npz").open("ab") as stream:
+        stream.write(b"tampered")
+    with pytest.raises(ValueError, match="parent partition bytes"):
+        assemble(fresh, tmp_path / "rejected", reuse=reuse)
+    assert not (tmp_path / "rejected/metadata.json").exists()
+
+
+def test_followup_requires_same_parent_mechanics(collection, tmp_path):
+    parts, _, _ = collection
+    parent_root = tmp_path / "parent"
+    parent = assemble(parts, parent_root)
+    parent["collection_records"]["train"][0]["resolved_config"]["sim"]["dt"] = 0.01
+    (parent_root / "metadata.json").write_text(json.dumps(parent))
+    reuse = {
+        "dataset": parent_root,
+        "metadata_sha256": file_digest(parent_root / "metadata.json"),
+        "partitions": {name: parent["partitions"][name] for name in ("train", "validation")},
+    }
+    with pytest.raises(ValueError, match="parent resolved mechanics"):
+        assemble([p for p in parts if "test_" in p.name], tmp_path / "rejected", reuse=reuse)
+
+
+def test_followup_render_uses_protocol_pilot_and_fresh_simulator_seed(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from world_modeling import campaign
+
+    cells = []
+    for variant in ("B0", "D1"):
+        for seed in (33, 44):
+            directory = tmp_path / f"{variant}-seed{seed}"
+            cells.append((variant, seed, directory, None, None))
+    baseline = cells[0][2] / "world_model_eval/test_id-A"
+    baseline.mkdir(parents=True)
+    (baseline / "scored_rows.json").write_text(
+        json.dumps([{"horizon_steps": 100, "reference_eligible": True, "failure_aware_score": 1, "episode_id": 9}])
+    )
+    protocol = {
+        "group": "test-group",
+        "protocol_id": "p-test",
+        "compute_pool": [0, 1],
+        "variants": {name: {"eval_task": "Play"} for name in ("B0", "D1")},
+        "world_model": {
+            "pilot_seed": 33,
+            "collection": {"test_id": {"seed": 7301}},
+            "policy": "policy.pt",
+            "dataset": "dataset",
+        },
+    }
+    jobs = []
+
+    def capture(submitted, *args, **kwargs):
+        jobs.extend(submitted)
+        return 0
+
+    monkeypatch.setattr(campaign, "trained_cells", lambda *args: iter(cells))
+    rr = SimpleNamespace(PLAY_SCRIPT="play.py", pin_launch=lambda *args: "tag", run_queue=capture)
+    campaign.render(protocol, rr, {}, {"log_root": tmp_path})
+    assert len(jobs) == 22
+    for job in jobs:
+        argv = job["argv"]
+        assert argv[argv.index("--seed") + 1] == "7301"
+        if "seed44" in job["name"]:
+            assert argv[argv.index("--world_model_episode") + 1] == "0"
+        else:
+            assert "seed33" in job["name"]

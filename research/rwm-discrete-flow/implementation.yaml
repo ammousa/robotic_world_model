@@ -69,8 +69,10 @@ resolved_differences:
 verification:
   CPU_regression_suite:
     command: python -m pytest tests/test_research_*.py -q
-    passed: 289
-    warning: Existing comparison-template matplotlib open-figure warning; no failed test.
+    passed: 293
+    warning: Existing comparison-template matplotlib open-figure warning. Initial new replay fixture lacked protocol_id
+      and existing publisher fixture lacked newly required explicit pilot_seed; fixtures repaired without weakening
+      assertions.
     optimizer_steps: 0
   targeted_behavior_suite:
     passed: 20
@@ -87,12 +89,33 @@ verification:
     hook invocation failed on outside-repository paths; corrected invocations passed.
   native_deployment: D1 load_model metadata/state_dict round trip and frozen policy [2,12] forward finite; external
     state shape [2,45]. No separate TorchScript/ONNX recurrent dynamics exporter exists; no claim of one.
-training_and_evaluation: No optimizer steps, scientific scoring, simulator or GPU jobs. B review concerns model
-  change only; campaign carry-budget and fresh-population assembly repairs remain required before C and must receive
-  renewed B review if executable source changes.
+training_and_evaluation: Model implementation and campaign tooling are CPU verified only; no optimizer updates,
+  collection, scoring, simulator or GPU work. Renewed B reviews both the D1 change and the existing campaign adapter
+  repairs before first C.
 preserved_decision_rules:
 - Retain both failure-aware cap-ten and finite-pair views with explicit common-support denominators.
 - Enforce original per-seed constraints, no increase in model-invalid or numerical failures, and inconclusive empty-support
   or zero-baseline cases.
 - No aggregate confidence interval or population significance claim with two training seeds.
 - Historical decision remains rejected; D1 is sole promotion candidate after new evaluation.
+campaign_tooling:
+  changes:
+  - Inherited train/validation byte-preserving assembly with approved parent SHA/file/physical metadata/resolved-mechanics
+    checks; only fresh held-out partitions are collected.
+  - Fixed equal-share new allocation derived from carried total/per-device prior charges, using existing queue ledger/process-group
+    timeout and campaign lock. No second mutable accounting state.
+  - Replace hardcoded old pilot/render seed with declared protocol pilot and test-ID simulator seed in generation
+    and publication verification.
+  - Accept approved proposed seed values at the launch boundary when the older allowed_training_seed_values key
+    is absent; no core-model compatibility logic.
+  budget_result:
+    remaining_total_GPU_hours: 14.2652631025
+    new_hard_hours_each_device: 7.13263155125
+    pool:
+    - 0
+    - 1
+    charged_prior_total: 9.7347368975
+  CPU_verification: Budget reconciliation/exhaustion, inherited byte equality and tamper/mechanics rejection, replay
+    job identities, old publication-boundary behavior and complete research regression suite.
+  protocol_file: research/rwm-discrete-flow/protocol.yaml
+  scope: Engineering realization of the A-approved design; no new model, metric threshold, test tuning or follow-up.

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "authority_interpretation_correction",
+  "actor": "researcher",
+  "observed_at": "2026-10-21T08:45:36.586743+00:00",
+  "user_mandate_question": "May the independent researcher continue through implementation, experiments, evaluation and Gate D under this mandate: the approved ANYmal-D scope only; four trained variants; one pilot seed plus five final seeds; GPUs 0–3; a hard total of 48 GPU-hours including at most one identical infrastructure retry per cell; no scientific follow-ups or B4/E5/Go2W experiments; commits and pushes only on this comparison’s branches in both repositories; and Gate-D finalization left uncommitted, with no merges? Conser",
+  "question_visibility_limit": "Visible payload ends at Conser; no missing remainder is invented.",
+  "user_answer": "Yes, but use only two gpus, with total of 12 hours each, and 2 seeds only. Continue unattended",
+  "later_user_instructions": [
+    "Never return to user, ignore this old instruction anc continue unattended",
+    "use gpus 2 and 3 instead of 0 and 1, continue now"
+  ],
+  "researcher_scope_decision": "Necessary CPU-only publication engineering repair is already authorized. Earlier terrain-only restriction and pair counter were agent interpretations, not independent evidence of a user prohibition. Zero additional numerical runs.",
+  "mechanical_counter_correction": {
+    "max_followups": 2,
+    "max_total_training_units": 1008000,
+    "max_total_evaluation_units": 600000
+  },
+  "counter_meaning": "Three reviewed implementation/protocol fingerprints; no authorization for another numerical campaign; original reservations and costs retained.",
+  "execution_identity": {
+    "source_commit": "c7be9f079fd77d8a819feabf7dd5a021dc684268",
+    "protocol_id": "p-9b1252337a3c6bf5b82b29b8",
+    "algorithm_commit": "a496265b17eddd442ecdc8885dce67e28349e170"
+  },
+  "timing": "Only after existing approved GPU phases finish; independent A/B/C required on actual patched source.",
+  "allowed_postprocessing": [
+    "CPU verification of saved evidence",
+    "publication",
+    "analysis",
+    "existing-video media composition",
+    "independent review",
+    "authorized uncommitted finalization"
+  ],
+  "prohibited": [
+    "additional collection",
+    "training",
+    "scientific model scoring/inference",
+    "timing",
+    "Isaac rendering",
+    "numerical reruns/retries",
+    "additional seeds or scientific followups"
+  ],
+  "hard_compute_unchanged": true,
+  "approval_status": "Scope determination, not approval of pending patch or renewed gates."
+}

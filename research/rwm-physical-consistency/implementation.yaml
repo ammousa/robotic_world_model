@@ -98,7 +98,7 @@ architecture:
 implementation_scope: Model module, immutable fixed-data adapter and explicitly separate world-model scoring
   over the existing train.py/play.py and queue APIs. Existing RL paths preserved.
 verification:
-  cpu_suite: 272 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
+  cpu_suite: 284 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
     python -m pytest tests/test_research_*.py -q
   policy_forward: stock ActorCritic, frozen boundary and traced actor agree bitwise on CPU
   simulator_smoke: Not launched; requires Gate C and is charged to the same GPU budget
@@ -117,6 +117,12 @@ verification:
   device_placement: Eight CPU cases verify inherited visibility removal, physical PCI order, CPU/cuda:2/cuda:3
     selection before train/score model construction, and explicit timing synchronization/memory devices
     without allocating CUDA.
+  publication_boundary: '12 CPU regression cases: selected timing remains mandatory; final sensitivity
+    timing is optional; unknown role, checkpoint identity, population/failure retention and terminal censoring
+    remain strict.'
+  existing_evidence_matrix: 64/64 original scoring cells, 196608 stochastic rows and 44 replay outcomes
+    passed CPU-only content/identity/population/censoring verification; every numerical fingerprint remains
+    original c7be9f0; zero neural forward calls or physics steps.
 limitations:
 - Only two independent training seeds; no aggregate confidence interval or population-support claim.
 - USD frame extraction must agree with actual initial foot-link coordinates within 2 mm before collection
@@ -144,3 +150,21 @@ technical_repair:
   gpu_placement: User explicitly changes pool to physical GPUs 2/3. Preserve native physical ordinals,
     select current Torch device before model construction, synchronize explicit timing device, and retain
     previous GPU charges by allocating half the remaining total to each active device.
+publication_repair:
+  scope: CPU-only verification/publication boundary; no scientific execution or altered numerical evidence.
+  source_changes:
+  - src/world_modeling/results.py
+  - tests/test_research_world_model_publication.py
+  reason: Final-checkpoint A sensitivity was incorrectly required to carry timing measured only for selected
+    test-ID A.
+  interface: verify_cell requires an explicit selected/final checkpoint_role; publisher derives it from
+    its known cell role.
+  original_numerical_source_commit: c7be9f079fd77d8a819feabf7dd5a021dc684268
+  original_algorithm_commit: a496265b17eddd442ecdc8885dce67e28349e170
+  unchanged_executed_protocol_id: p-9b1252337a3c6bf5b82b29b8
+  publication_source: Current clean commit recorded at runtime; distinguish from original scored provenance.
+  original_provenance_modified: false
+  new_numerical_runs: 0
+  timing_fabricated: false
+  analysis_only_additions: W&B-only descriptive slices, complete historical GPU-cost reconciliation, physical/behaviour/validity
+    plots and existing-video composition; portable training-data integration audits.

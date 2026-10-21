@@ -230,3 +230,77 @@
   mode: unattended
   at: '2026-10-20T22:10:36.259415+00:00'
   receipt_id: r-2919c7c5d47e616339f44fce
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The unchanged hypothesis remains falsifiable. Corrected authority permits
+    necessary CPU-only publication engineering after completed numerical execution;
+    three fingerprint reservations authorize no new experiments. Seeds, scientific
+    thresholds, original provenance and hard compute limits remain fixed.
+  risk: Two seeds limit population inference; technical completion does not establish
+    evidence validity or scientific support.
+  next_action: Apply the isolated CPU publication repair, verify it, and submit actual
+    source for renewed Gate B; launch no numerical jobs.
+  evidence:
+  - research/rwm-physical-consistency/hypothesis.yaml
+  - research/rwm-physical-consistency/workflow.yaml
+  - research/rwm-physical-consistency/authority_correction.json
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+  workflow_id: w-3102ebe86f3d8f013c328d3b
+  mode: unattended
+  at: '2026-10-21T09:56:07.944386+00:00'
+  receipt_id: r-0074e5fdc985932ef142830d
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: Explicit checkpoint roles correct final-sensitivity verification while preserving
+    selected timing, identity, pairing, censoring and failure populations. Twelve
+    independent regression tests pass. Numerical source, models, data and protocol
+    remain unchanged; added analysis and media code are postprocessing only.
+  risk: Publication correctness does not establish scientific support; two seeds limit
+    population inference and composite videos remain illustrative.
+  next_action: Submit exact publication-only commands, source identities and provenance
+    bindings for renewed Gate C; authorize no new numerical work.
+  evidence:
+  - src/world_modeling/results.py
+  - tests/test_research_world_model_publication.py
+  - research/rwm-physical-consistency/implementation.yaml
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-9bfac893dbc8e4dbea4ff7e2
+    prior_receipts:
+      A: r-0074e5fdc985932ef142830d
+  workflow_id: w-3102ebe86f3d8f013c328d3b
+  mode: unattended
+  at: '2026-10-21T10:02:23.617507+00:00'
+  receipt_id: r-36b3dbf30cccec8cbd56fd58
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: Approve only the hashed CPU publication, W&B-only analysis and existing-media
+    plan. Completed numerical evidence and hard compute limits remain fixed. Three
+    mechanical fingerprint reservations confer zero additional collection, training,
+    scoring, inference, timing, rendering or retry authority.
+  risk: Two-seed inference remains inconclusive; publication must preserve original
+    c7 fingerprints and distinguish illustrative composites from scored evidence.
+  next_action: Commit/push reviewed comparison changes; execute only the hashed CPU
+    postprocessing plan, preserve numerical identities, then submit verified evidence
+    for independent Gate D.
+  evidence:
+  - research/rwm-physical-consistency/workflow.yaml
+  - research/rwm-physical-consistency/protocol.yaml
+  - /tmp/rwm-physical-review/postprocessing-command-plan.json#sha256=015e548ecdff52d83461d3b5359f38e13fdba8c3c7daffc8214e7878613ff8e3
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-9bfac893dbc8e4dbea4ff7e2
+    protocol_id: p-9b1252337a3c6bf5b82b29b8
+    prior_receipts:
+      A: r-0074e5fdc985932ef142830d
+      B: r-36b3dbf30cccec8cbd56fd58
+  workflow_id: w-3102ebe86f3d8f013c328d3b
+  reserved_training_units: 336000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-21T10:10:12.124362+00:00'
+  receipt_id: r-803ca834c36b3d4c88ddff80

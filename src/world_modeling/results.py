@@ -15,7 +15,9 @@ from .core import file_digest, pose_from_states, read_partition
 from .evaluation import HORIZONS
 
 
-def verify_cell(path, checkpoint, protocol, partition, mode, expected_ids):
+def verify_cell(path, checkpoint, protocol, partition, mode, expected_ids, *, checkpoint_role):
+    if checkpoint_role not in {"selected", "final"}:
+        raise ValueError("checkpoint_role must be selected or final")
     info = json.loads((path / "provenance.json").read_text())
     data = torch.load(checkpoint, map_location="cpu", weights_only=True)
     expected = {
@@ -76,7 +78,12 @@ def verify_cell(path, checkpoint, protocol, partition, mode, expected_ids):
         if spec["source"] == "scored_rows.json":
             if any(column not in row for row in rows for column in spec["columns"]):
                 raise ValueError("declared diagnostic column is absent")
-        elif spec["source"] == "provenance.json" and mode == "A" and partition == "test_id":
+        elif (
+            spec["source"] == "provenance.json"
+            and checkpoint_role == "selected"
+            and mode == "A"
+            and partition == "test_id"
+        ):
             if any(column not in info.get("timing", {}) for column in spec["columns"]):
                 raise ValueError("declared timing evidence is absent")
     return rows, info
@@ -276,6 +283,7 @@ def publish(protocol, cells):
                     partition,
                     "A" if mode == "A-final" else mode,
                     arrays["episode_id"].tolist(),
+                    checkpoint_role="final" if mode == "A-final" else "selected",
                 )
                 all_rows.extend(
                     [{**row, "checkpoint_role": "final" if mode == "A-final" else "selected"} for row in rows]

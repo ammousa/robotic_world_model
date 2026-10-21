@@ -43,3 +43,26 @@
   mode: unattended
   at: '2026-10-21T17:14:26.467688+00:00'
   receipt_id: r-647a153763d6220ee0bbb0a9
+- gate: B
+  actor: researcher
+  verdict: reject
+  reason: Scoring jobs from distinct training runs still share names while the queue
+    keys running processes by name. Overlap can overwrite child tracking and invalidate
+    completion/accounting despite correct dataset reuse and conservative carried-budget
+    shares.
+  risk: Duplicate identities can orphan process tracking and corrupt completion evidence.
+    Prior reconciled historical accounting remains unchanged.
+  next_action: Make scoring names unique across training runs, reject duplicate queue
+    names before dispatch, test complete job grids, then resubmit B.
+  evidence:
+  - src/world_modeling/campaign.py
+  - scripts/research_runs.py
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-88f814043ecf68940db02536
+    prior_receipts:
+      A: r-33e198f5d64ef10bd4105113
+  workflow_id: w-52f37d6d40da0a7106a2c5f5
+  mode: unattended
+  at: '2026-10-21T17:25:07.058191+00:00'
+  receipt_id: r-f3c71971530877e6bfef8650

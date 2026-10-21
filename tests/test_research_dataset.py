@@ -245,3 +245,40 @@ def test_followup_render_uses_protocol_pilot_and_fresh_simulator_seed(tmp_path, 
             assert argv[argv.index("--world_model_episode") + 1] == "0"
         else:
             assert "seed33" in job["name"]
+
+
+def test_full_factorial_score_grid_has_unique_queue_identities(tmp_path):
+    from types import SimpleNamespace
+
+    from world_modeling.campaign import score_job
+
+    protocol = {"protocol_id": "p-test", "world_model": {"dataset": "dataset", "policy": "policy.pt"}}
+    jobs = []
+    for variant in ("B0", "B1", "B2", "D1", "E3_direct_velocity"):
+        for seed in (33, 44):
+            directory = tmp_path / f"{variant}-seed{seed}"
+            for partition in ("test_id", "test_command_shift"):
+                for mode in ("A", "B", "B_shadow", "A-final"):
+                    checkpoint = directory / ("model_20000.pt" if mode == "A-final" else "model_1000.pt")
+                    output = directory / "world_model_eval" / f"{partition}-{mode}"
+                    jobs.append(
+                        score_job(protocol, SimpleNamespace(PLAY_SCRIPT="play.py"), checkpoint, partition, mode, output)
+                    )
+    assert len(jobs) == 80
+    assert len({job["name"] for job in jobs}) == 80
+    assert all(job["research"]["protocol_id"] == "p-test" for job in jobs)
+
+
+def test_queue_rejects_duplicate_names_before_files_or_dispatch(tmp_path, monkeypatch):
+    from test_research_runs import rr
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("duplicate jobs must fail before any queue event or subprocess")
+
+    monkeypatch.setattr(rr, "_event", forbidden)
+    monkeypatch.setattr(rr.subprocess, "Popen", forbidden)
+    destination = tmp_path / "not-created"
+    job = {"name": "same-cell", "gpu": None, "argv": ["python", "play.py"]}
+    with pytest.raises(ValueError, match="duplicate queue job names"):
+        rr.run_queue([job, dict(job)], [0, 1], destination)
+    assert not destination.exists()

@@ -815,6 +815,9 @@ def run_queue(
     launch_tag: str | None = None,
     gpu_budget: dict | None = None,
 ) -> int:
+    names = [job["name"] for job in jobs]
+    if len(names) != len(set(names)):
+        raise ValueError("duplicate queue job names; every child must have a unique identity")
     if not gpu_budget and any(
         job.get("research", {}).get("protocol_contract", {}).get("domain") == "world_model" for job in jobs
     ):

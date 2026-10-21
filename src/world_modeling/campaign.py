@@ -322,7 +322,7 @@ def score_job(protocol, rr, checkpoint, partition, mode, output, **extra):
         if value is not True:
             argv.append(str(value))
     return {
-        "name": output.parent.name + "-" + output.name,
+        "name": checkpoint.parent.name + "-" + output.name,
         "gpu": None,
         "argv": argv,
         "research": {"protocol_id": protocol["protocol_id"], "job_type": "eval", "protocol_contract": protocol},

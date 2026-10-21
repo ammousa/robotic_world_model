@@ -69,7 +69,7 @@ resolved_differences:
 verification:
   CPU_regression_suite:
     command: python -m pytest tests/test_research_*.py -q
-    passed: 293
+    passed: 295
     warning: Existing comparison-template matplotlib open-figure warning. Initial new replay fixture lacked protocol_id
       and existing publisher fixture lacked newly required explicit pilot_seed; fixtures repaired without weakening
       assertions.
@@ -108,6 +108,8 @@ campaign_tooling:
     and publication verification.
   - Accept approved proposed seed values at the launch boundary when the older allowed_training_seed_values key
     is absent; no core-model compatibility logic.
+  - Scoring/shadow-scoring job names include unique training directory identity; shared queue rejects duplicates
+    before events, output creation or child launch.
   budget_result:
     remaining_total_GPU_hours: 14.2652631025
     new_hard_hours_each_device: 7.13263155125
@@ -115,7 +117,11 @@ campaign_tooling:
     - 0
     - 1
     charged_prior_total: 9.7347368975
-  CPU_verification: Budget reconciliation/exhaustion, inherited byte equality and tamper/mechanics rejection, replay
-    job identities, old publication-boundary behavior and complete research regression suite.
+  CPU_verification: 295 tests pass, including full80-cell factorial selected/final scoring name uniqueness and duplicate-name
+    pre-dispatch rejection, plus byte reuse/mechanics/tamper, carried-budget/timeouts, fresh replay seeds and publication
+    boundaries.
   protocol_file: research/rwm-discrete-flow/protocol.yaml
   scope: Engineering realization of the A-approved design; no new model, metric threshold, test tuning or follow-up.
+  review_history: Previous renewed B rejected duplicate scoring identities under i-88f814043ecf68940db02536; actual
+    rejection receipt retained. Repair changes no numerical/scientific settings and consumes no C reservation before
+    first approval.

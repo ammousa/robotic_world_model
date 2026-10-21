@@ -66,3 +66,28 @@
   mode: unattended
   at: '2026-10-21T17:25:07.058191+00:00'
   receipt_id: r-f3c71971530877e6bfef8650
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: Unique scoring identities and pre-dispatch duplicate rejection resolve the
+    blocker. Byte-preserving parent reuse, fresh replay settings and conservative
+    carried-budget shares preserve comparability. CPU regressions pass; D1 and scientific
+    thresholds remain unchanged.
+  risk: Equal per-device shares can strand unused capacity. Forecast, exact commands,
+    sealed population and all-phase reservations still require C approval.
+  next_action: Submit exact protocol, commands and carried-cost evidence for C. No
+    collection, training, scoring, timing, simulator rendering or GPU dispatch before
+    approval.
+  evidence:
+  - research/rwm-discrete-flow/implementation.yaml
+  - src/world_modeling/campaign.py
+  - scripts/research_runs.py
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-d694bc87d7ba30c61a3d0830
+    prior_receipts:
+      A: r-33e198f5d64ef10bd4105113
+  workflow_id: w-52f37d6d40da0a7106a2c5f5
+  mode: unattended
+  at: '2026-10-21T17:28:56.555443+00:00'
+  receipt_id: r-e846d7c9c621be9a10582c69

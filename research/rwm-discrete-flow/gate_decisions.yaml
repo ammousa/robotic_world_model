@@ -18,3 +18,28 @@
   mode: unattended
   at: '2026-10-21T17:09:28.297449+00:00'
   receipt_id: r-33e198f5d64ef10bd4105113
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: D1 correctly combines direct velocities with independent residual joints,
+    preserving existing transitions, inputs and losses. Targeted CPU tests pass; sixteen
+    historical checkpoint roles retain bitwise outputs. Shared initialization and
+    sampled-noise coupling are verified.
+  risk: Model-only review. Carried-budget enforcement, immutable train/validation
+    reuse, fresh held-out assembly and seed-33 replays still require executable tooling
+    and renewed B.
+  next_action: Prepare campaign tooling and exact protocol, then renew B before C.
+    No GPU dispatch or scientific training is approved.
+  evidence:
+  - research/rwm-discrete-flow/implementation.yaml
+  - ../rsl_rl_rwm-agent-rwm-discrete-flow/rsl_rl/modules/kinematic_dynamics.py
+  - logs/queue/rwm-discrete-flow/implementation_compatibility.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-2a8df83c593c3b6ba7b160dc
+    prior_receipts:
+      A: r-33e198f5d64ef10bd4105113
+  workflow_id: w-52f37d6d40da0a7106a2c5f5
+  mode: unattended
+  at: '2026-10-21T17:14:26.467688+00:00'
+  receipt_id: r-647a153763d6220ee0bbb0a9

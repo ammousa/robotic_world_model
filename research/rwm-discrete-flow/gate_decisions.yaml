@@ -91,3 +91,32 @@
   mode: unattended
   at: '2026-10-21T17:28:56.555443+00:00'
   receipt_id: r-e846d7c9c621be9a10582c69
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: Exact host-bound commands implement the matched five-variant, two-seed factorial
+    with sealed fresh tests, immutable training reuse, unchanged decision rules and
+    complete reservations. Fixed device shares enforce carried limits; automatic full
+    training requires passing pilots and measured cost checks.
+  risk: Forecasts remain uncertain; hard limits can stop completion. Two seeds leave
+    population generalization inconclusive. Latency and all original constraints remain
+    binding.
+  next_action: Record and commit C; run the exact fail-stop sequence on exclusive
+    GPUs 0/1 within remaining shares. Preserve failures; no automatic retries or follow-ups.
+  evidence:
+  - research/rwm-discrete-flow/protocol.yaml
+  - logs/queue/rwm-discrete-flow/executable_jobs.proposal.json
+  - logs/queue/rwm-discrete-flow/host_launch_binding.proposal.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-d694bc87d7ba30c61a3d0830
+    protocol_id: p-ba4bd1b0e9ffb7a0328a60d7
+    prior_receipts:
+      A: r-33e198f5d64ef10bd4105113
+      B: r-e846d7c9c621be9a10582c69
+  workflow_id: w-52f37d6d40da0a7106a2c5f5
+  reserved_training_units: 420000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-21T17:34:18.752652+00:00'
+  receipt_id: r-3e82d1fa813e62f254896833

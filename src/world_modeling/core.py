@@ -29,7 +29,13 @@ ARCHITECTURE = {
     "contact_shape": [128],
     "termination_shape": [128],
 }
-VARIANTS = {"B0": None, "B1": "orientation", "B2": "joints", "E3_direct_velocity": "absolute_velocity"}
+VARIANTS = {
+    "B0": None,
+    "B1": "orientation",
+    "B2": "joints",
+    "D1": "direct_independent",
+    "E3_direct_velocity": "absolute_velocity",
+}
 
 
 def file_digest(path):

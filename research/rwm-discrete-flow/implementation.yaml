@@ -1,0 +1,98 @@
+schema_version: 1
+group: rwm-discrete-flow
+hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+variants:
+  B0:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - B0
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  B1:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - B1
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  B2:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - B2
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  D1:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - D1
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  E3_direct_velocity:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - E3_direct_velocity
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+algorithm_repository: ../rsl_rl_rwm-agent-rwm-discrete-flow
+algorithm_commit: 928bc58ec2c5866a42eb668ae52fced92e97124f
+resolved_differences:
+  B0: Unchanged original 45-coordinate residual model, separate external reference.
+  B1: Unchanged 42-output residual velocity/independent residual joints, reconstructed orientation.
+  B2: Unchanged 30-output residual velocity/endpoint-integrated joints, reconstructed orientation.
+  D1: 42-output direct next velocity/independent residual joints, reconstructed orientation; combines existing head
+    skip removal with existing independent-joint output structure only.
+  E3_direct_velocity: Unchanged 30-output direct next velocity/endpoint-integrated joints, reconstructed orientation.
+verification:
+  CPU_regression_suite:
+    command: python -m pytest tests/test_research_*.py -q
+    passed: 289
+    warning: Existing comparison-template matplotlib open-figure warning; no failed test.
+    optimizer_steps: 0
+  targeted_behavior_suite:
+    passed: 20
+    new_checks: D1 reconstruction/gradient and eight-step backpropagation; partial resets/checkpoint roundtrip;
+      every semantic seeded baseline tensor; exact direct/residual velocity skip; 16 full-45 loss/feedback noise
+      draws across all five variants.
+  historical_checkpoint_compatibility:
+    file: logs/queue/rwm-discrete-flow/implementation_compatibility.json
+    sha256: 3fef12ccb26ac338ff9f1674203f837e4149f00d0e9ba4b993e8c90325f4e846
+    checkpoints: 16
+    comparison: Bitwise matching three-step outputs against original algorithm module for all selected/final checkpoint
+      roles.
+  hooks: Applicable changed-file pre-commit hooks passed independently inside both repositories. Initial cross-repository
+    hook invocation failed on outside-repository paths; corrected invocations passed.
+  native_deployment: D1 load_model metadata/state_dict round trip and frozen policy [2,12] forward finite; external
+    state shape [2,45]. No separate TorchScript/ONNX recurrent dynamics exporter exists; no claim of one.
+training_and_evaluation: No optimizer steps, scientific scoring, simulator or GPU jobs. B review concerns model
+  change only; campaign carry-budget and fresh-population assembly repairs remain required before C and must receive
+  renewed B review if executable source changes.
+preserved_decision_rules:
+- Retain both failure-aware cap-ten and finite-pair views with explicit common-support denominators.
+- Enforce original per-seed constraints, no increase in model-invalid or numerical failures, and inconclusive empty-support
+  or zero-baseline cases.
+- No aggregate confidence interval or population significance claim with two training seeds.
+- Historical decision remains rejected; D1 is sole promotion candidate after new evaluation.

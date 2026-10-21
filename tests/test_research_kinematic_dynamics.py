@@ -41,7 +41,7 @@ def test_gravity_initializes_tilt_without_yaw():
     assert torch.allclose(2 * (w * z + x * y), torch.zeros(1), atol=1.0e-6)
 
 
-@pytest.mark.parametrize("variant", ["B1", "B2", "E3_direct_velocity"])
+@pytest.mark.parametrize("variant", ["B1", "B2", "D1", "E3_direct_velocity"])
 def test_reconstruction_gradients_and_independent_outputs(variant, metadata):
     model = build_model(variant, metadata, 11)
     state = torch.zeros(2, 45)
@@ -51,7 +51,7 @@ def test_reconstruction_gradients_and_independent_outputs(variant, metadata):
     physical = model.physical(result)
     assert torch.allclose(physical[:, 6:9], projected_gravity(q_next))
     assert torch.allclose(physical[:, 6:9].norm(dim=-1), torch.ones(2))
-    if variant != "B1":
+    if variant in {"B2", "E3_direct_velocity"}:
         assert torch.allclose(physical[:, 9:21], model.physical(state)[:, 9:21] + 0.02 * physical[:, 21:33])
         assert len(model.independent_indices) == 30
     else:
@@ -61,9 +61,10 @@ def test_reconstruction_gradients_and_independent_outputs(variant, metadata):
     assert independent.grad.abs().sum() > 0
 
 
-def test_forecast_backprop_checkpoint_and_row_reset(metadata):
+@pytest.mark.parametrize("variant", ["B2", "D1"])
+def test_forecast_backprop_checkpoint_and_row_reset(metadata, variant):
     torch.set_num_threads(1)
-    model = build_model("B2", metadata, 11)
+    model = build_model(variant, metadata, 11)
     state = torch.zeros(2, 40, 45)
     action = torch.zeros(2, 40, 12)
     model.reset()
@@ -87,7 +88,7 @@ def test_forecast_backprop_checkpoint_and_row_reset(metadata):
     saved = io.BytesIO()
     torch.save(model.state_dict(), saved)
     saved.seek(0)
-    loaded = build_model("B2", metadata, 22)
+    loaded = build_model(variant, metadata, 22)
     loaded.load_state_dict(torch.load(saved, weights_only=True))
     assert loaded.orientation is None
     model.reset()
@@ -323,3 +324,72 @@ def test_world_model_report_profile_does_not_inherit_rl_metrics():
         config={"runner_cfg": {"research": {"protocol_contract": {"domain": "world_model"}}}},
     )
     assert MetricResolver([run]).profile(run) == "world_model"
+
+
+def test_factorial_heads_share_initial_tensors_and_change_only_velocity_skip(metadata):
+    torch.set_num_threads(1)
+    models = {variant: build_model(variant, metadata, 33) for variant in ("B0", "B1", "B2", "D1", "E3_direct_velocity")}
+    original = models["B0"].state_dict()
+    for variant, model in models.items():
+        if variant == "B0":
+            continue
+        for name, tensor in original.items():
+            expected = tensor
+            actual = model.state_dict()[name]
+            if expected.shape != actual.shape:
+                indices = model.independent_indices
+                expected = (
+                    expected[..., indices] if expected.ndim == 2 and expected.shape[0] == 1 else expected[indices]
+                )
+            assert torch.equal(actual, expected), (variant, name)
+    state = torch.randn(2, 32, 45)
+    features = torch.randn(2, 256)
+    for residual, direct in (("B1", "D1"), ("B2", "E3_direct_velocity")):
+        r, d = models[residual], models[direct]
+        assert r.independent_indices == d.independent_indices
+        r_mean, r_std = r.state_heads[0](features, state)
+        d_mean, d_std = d.state_heads[0](features, state)
+        skip = torch.zeros_like(d_mean)
+        for coordinate, index in enumerate(d.independent_indices):
+            if index < 6 or 21 <= index < 33:
+                skip[:, coordinate] = state[:, -1, index]
+        assert torch.allclose(r_mean - skip, d_mean, atol=1e-7)
+        assert torch.equal(r_std, d_std)
+    assert sum(p.numel() for p in models["D1"].parameters()) == 1417009
+    assert sum(p.numel() for p in models["B2"].parameters()) == 1413889
+
+
+def test_direct_independent_joint_gradients_and_full_noise_coupling(metadata, monkeypatch):
+    torch.set_num_threads(1)
+    state = torch.randn(2, 40, 45) * 0.1
+    action = torch.randn(2, 40, 12)
+    samples = {}
+    randn_like = torch.randn_like
+    for variant in ("B0", "B1", "B2", "D1", "E3_direct_velocity"):
+        model = build_model(variant, metadata, 33)
+        draws = []
+
+        def capture(value, **kwargs):
+            result = randn_like(value, **kwargs)
+            draws.append(result.detach().clone())
+            return result
+
+        with monkeypatch.context() as context:
+            context.setattr(torch, "randn_like", capture)
+            torch.manual_seed(100)
+            model.reset()
+            loss = model.compute_state_loss(model.state_heads[0], state, action)[0]
+        samples[variant] = draws
+        assert torch.isfinite(loss)
+        assert len(draws) == 16 and all(draw.shape == (2, 45) for draw in draws)
+    assert all(torch.equal(a, b) for draws in samples.values() for a, b in zip(draws, samples["B0"]))
+    model = build_model("D1", metadata, 33)
+    independent = torch.randn(2, 42, requires_grad=True)
+    previous = state[:, 0]
+    orientation = orientation_from_gravity(model.physical(previous)[:, 6:9])
+    result, _ = model.reconstruct(independent, previous, orientation)
+    derivative = torch.autograd.grad(result[:, 9:21].sum(), independent)[0]
+    for column, index in enumerate(model.independent_indices):
+        expected = 1.0 if 9 <= index < 21 else 0.0
+        assert torch.allclose(derivative[:, column], torch.full((2,), expected))
+    assert torch.equal(result[:, 9:21], independent[:, 6:18])

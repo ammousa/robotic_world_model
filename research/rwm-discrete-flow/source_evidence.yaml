@@ -1,0 +1,65 @@
+schema_version: 1
+original_report:
+  url: https://app.forge.coreweave.com/oxdynamics/rwm-explore/reports/rwm-physical-consistency--VmlldzoxODE1MTQyNQ==
+  blocks: 57
+  text_sha256: bbf7fe2f44b79bb1c925d77744eb16c632ea2a2787db1b743f994985fc64a8f3
+immutable_inputs:
+  dataset:
+    name: oxdynamics/rwm-explore/rwm-physical-consistency-dataset:v0
+    digest: 4c71b17dd7edbeff2d564cb859c25972
+    type: dataset
+  analysis:
+    name: oxdynamics/rwm-explore/scientific-evidence-rwm-physical-consistency:v1
+    digest: 603de3da7d7c3825ccd3f596160cb847
+    type: scientific-evidence
+    evidence_id: evidence-e20064333591c183b43fcbe2
+  checkpoints:
+    name: oxdynamics/rwm-explore/rwm-physical-consistency-evaluated-checkpoints:v0
+    digest: 332624f1d6bf388df43bdaf818d49500
+    type: world-model-checkpoints
+  final_audit:
+    name: oxdynamics/rwm-explore/rwm-physical-consistency-postprocessing-audit:v4
+    digest: 8432718c3c1ca0cb34af1bef133006ee
+    type: research-postprocessing
+dataset_manifest_sha256: 4272832c98da50d7e78c4dfc3fee9bbc4ca477c2e1bf6326194dbf8ca0d0e494
+checkpoint_roles_byte_verified: 16
+numerical_source_commit: c7be9f079fd77d8a819feabf7dd5a021dc684268
+algorithm_commit: a496265b17eddd442ecdc8885dce67e28349e170
+postprocessing_base_commit: eca49daf21147c5806073099970e51759df7ca0d
+source_findings:
+- finding: Seeded baseline tensor copying already couples GRUs, auxiliary parameters,
+    head-hidden parameters and semantic retained output rows.
+  path: src/world_modeling/core.py:65
+  status: static audit; verify initial equality and RNG at B without changing initialization
+- finding: Training resets torch RNG after model/actor/optimizer/artifact setup.
+  path: src/world_modeling/train.py:151
+  status: static source matches numerical c7 exactly
+- finding: State-head residual is explicit; direct mode removes only body/angular/joint
+    velocity skip.
+  path: rsl_rl/modules/kinematic_dynamics.py:53
+  status: No D1 implementation yet
+- finding: Joint position and velocity buffers query PhysX under the same articulation
+    timestamp; no velocity filter is inserted in the recorder.
+  path: IsaacLab/articulation_data.py:726
+  status: Does not reveal within-control-interval motion or exact PhysX solver corrections
+- finding: Recorder stores one copied post-step control-rate snapshot and history-max
+    contact labels, no substep time series.
+  path: source/mbrl/mbrl/mbrl/envs/world_model_recorder.py
+  status: Existing labels only
+source_hashes:
+  src/world_modeling/core.py: 69e68b133b1b31986b795d0e2641da82fa0f4defc447b522a6ca60556c705b5a
+  src/world_modeling/train.py: 1c35bda160ca1c12f9ec7496f97066255b210a3184658f8f9577096b89c6d25a
+  src/world_modeling/collection.py: 5df21c00413f21b153b8a1a325faa463fb5977dd33ee907d8605aaf8449a8b78
+  source/mbrl/mbrl/mbrl/envs/world_model_recorder.py: 13757a27ee4f6b0bcbe9cc37f7895eb6d019cdbaa3a5c4a6180f497b2efda933
+new_model_implementation: false
+model_constructions: 0
+neural_forward_calls: 0
+physics_steps: 0
+GPU_hours: 0
+inspection_stage: pre_gate_A_existing_evidence_only
+recorded_simulation_settings:
+  physics_dt_s: 0.005
+  control_decimation: 4
+  control_dt_s: 0.02
+  contact_history_samples: 3
+  physics_substep_state_samples_saved: false

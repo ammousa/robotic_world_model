@@ -1,0 +1,20 @@
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: D1 and the complete common-orientation factorial isolate velocity parameterization
+    and joint integration with fresh replication, preserved thresholds, falsification,
+    and corrected all-attempt reservations.
+  risk: Two seeds limit population inference; orientation overhead may prevent promotion.
+    Forecast and cumulative hard-budget enforcement remain unverified until C.
+  next_action: Implement the minimal D1 combination and CPU verification for B; retain
+    all original reducers. No scientific training or GPU execution before C.
+  evidence:
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - research/rwm-discrete-flow/proposal.yaml
+  - logs/queue/rwm-discrete-flow/diagnosis_verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-52f37d6d40da0a7106a2c5f5
+  mode: unattended
+  at: '2026-10-21T17:09:28.297449+00:00'
+  receipt_id: r-33e198f5d64ef10bd4105113

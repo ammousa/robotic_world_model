@@ -1,0 +1,222 @@
+schema_version: 1
+group: rwm-discrete-flow
+status: scientific_design_proposal
+original_decision:
+  report: https://app.forge.coreweave.com/oxdynamics/rwm-explore/reports/rwm-physical-consistency--VmlldzoxODE1MTQyNQ==
+  decision_id: d-474f0c4f8b76c215faf4380e
+  gate_D_receipt: r-49ea8fbd36df0e058387972a
+  disposition: Preserve rejection and all historical evidence; previous variants are controls, not promoted methods.
+diagnosis:
+  observed:
+    - Original RWM already learns a residual discrete-time state transition; the new question concerns parameterization and an incorrectly imposed sampled identity, not introducing flow-map learning for the first time.
+    - True endpoint and trapezoidal one-step discrepancies differ substantially, but the two-second true-velocity accumulated errors remain nearly equal; measured results live in the versioned diagnostic tables.
+    - On a fixed sequence, cumulative trapezoidal minus endpoint displacement equals dt/2 times initial minus final velocity. A boundary correction cannot generally remove persistent accumulated endpoint/displacement mismatch.
+    - Existing B2 and E3 velocity errors substantially cancel the true-velocity endpoint discrepancy; replacing only their saved-velocity readout with trapezoidal quadrature worsens joint accuracy. This is not a retrained feedback experiment.
+    - Joint-label discrepancies and local displacement errors of integrated models concentrate at coarse foot-label onsets, but independent-joint models distribute errors more broadly, including persistent contact.
+    - All eighteen residual velocity targets have lower training variance than direct targets. Simple target-range reduction therefore does not explain the historical E3 advantage.
+    - Physics-substep motion was not recorded. Sensor contact labels are maxima over history, not instantaneous contact-event times.
+  causal_hypotheses:
+    - Forced endpoint integration couples endpoint velocity supervision to joint-position error correction and can encourage velocity compensation inconsistent with endpoint measurements.
+    - Identity-skip removal may change recurrent error propagation, mean reversion and optimization conditioning; the observed integrated-arm benefit may interact with this compensation.
+    - Within-interval dynamics, contact impulses, numerical position corrections or other sampler/solver effects may contribute to the persistent label discrepancy; control-rate records cannot separate these causes.
+  excluded_claims:
+    - No unavoidable quadrature error floor.
+    - No proof that a better continuous-time solver or trapezoidal replacement improves a learned feedback model.
+    - No claim that all model error is caused by contacts or that direct velocity is universally superior.
+    - No claim that an unconstrained interval-average output adds a physical prior beyond a position increment.
+equations:
+  data:
+    endpoint_defect: dE_t = dt*v_true_next - (q_true_next - q_true_current)
+    trapezoid_defect: dT_t = dt*(v_true_current + v_true_next)/2 - (q_true_next - q_true_current)
+    interval_average_label: vbar_t = (q_true_next - q_true_current)/dt
+    telescoping_identity: sum(dT) - sum(dE) = dt*(v_true_initial - v_true_final)/2
+    model_reconstruction_defect: r_t = qhat_next - qhat_current - dt*vhat_next
+    exact_path_accounting: q_error_k = q_error_initial + sum(dE + dt*(vhat_next-v_true_next) + r)
+    mse_warning: Retain cross terms; do not rank marginal squared components as independent causal error shares.
+  normalized_heads:
+    state: z = (s - mu)/(sigma + 1e-8), using the original fixed vectors
+    residual_velocity: zhat_velocity_next = z_velocity_current + m_velocity(h)
+    direct_velocity: zhat_velocity_next = m_velocity(h)
+    independent_joint_position: zhat_q_next = z_q_current + m_q(h)
+    integrated_joint_position: qhat_next = qhat_current + dt*vhat_joint_next, in SI units, then renormalize
+    torque: zhat_torque_next = z_torque_current + m_torque(h)
+    orientation: R_next = R_current * ExpSO3(dt*omega_body_next)
+    gravity: g_body_next = transpose(R_next)*[0,0,-1]
+    translation: p_COM_next = p_COM_current + dt*R_next*v_COM_body_next
+    root_link: p_link_next = p_COM_next - R_next*COM_offset_body
+  observability:
+    - Initial tilt comes from measured projected gravity, yaw is a local gauge, and translation starts at zero.
+    - Actual poses may align/evaluate the trajectory once, never correct future model state.
+    - Rotation validity is a representation constraint, not evidence of correct orientation prediction.
+factorial:
+  cells:
+    B1: {velocity: residual, joints: independent, learned_coordinates: 42, parameters: 1417009}
+    B2: {velocity: residual, joints: endpoint_integrated, learned_coordinates: 30, parameters: 1413889}
+    D1: {velocity: direct, joints: independent, learned_coordinates: 42, parameters_proposed: 1417009}
+    E3_direct_velocity: {velocity: direct, joints: endpoint_integrated, learned_coordinates: 30, parameters: 1413889}
+  reference:
+    B0: {role: external_primary_reference, learned_coordinates: 45, parameters: 1417789, gravity: independent}
+  conditional_contrasts:
+    direct_with_independent_joints: D1 - B1
+    direct_with_integrated_joints: E3 - B2
+    integration_with_residual_velocity: B2 - B1
+    integration_with_direct_velocity: E3 - D1
+  main_effects:
+    direct_minus_residual: ((D1-B1) + (E3-B2))/2
+    integrated_minus_independent: ((B2-B1) + (E3-D1))/2
+    interaction: (E3-D1) - (B2-B1)
+  estimation:
+    - Compute each contrast within each fresh training seed on identical paired episode support; show the four raw cell means and denominators.
+    - Use absolute SI/composite differences for factorial effects; show relative conditional effects separately when denominators exceed 1e-8.
+    - For own-action shadows expose pairwise and four-cell common-reference support; candidate action distributions differ.
+    - Verify the independent population manifest, environment/command seeds and file hashes before joining existing scored-row paired keys; population provenance is a comparability key even when not repeated in every scored row.
+    - Existing three cells identify only existing conditional contrasts; do not impute D1, assume zero interaction or claim the full main effects are known.
+  primary_candidate: D1 only; no post-test tournament among controls
+implementation_specification:
+  minimal_model_change: Add one orthogonal combination of the existing direct-velocity switch and independent-joint reconstruction; preserve all existing transition meanings and checkpoint defaults.
+  locations:
+    - Sibling rsl_rl_rwm kinematic dynamics module for output structure.
+    - Existing world_modeling construction boundary for D1 metadata/config translation only.
+    - Existing offline dynamics optimizer, train.py dispatch and stock Play reference lifecycle remain reused.
+  head_layout:
+    - Velocity indices 0:6 and 21:33 are direct for D1/E3 and residual for B1/B2.
+    - Independent q indices 9:21 remain residual for B1/D1; B2/E3 remove those output rows.
+    - Torque indices 33:45 remain residual in every cell; gravity indices 6:9 are reconstructed in all factorial cells.
+    - Same separate mean/std 256-to-128 MLP heads, smooth learned logstd bounds and auxiliary contact/base-contact heads.
+  initialization:
+    - Reuse existing seeded B0 construction, named tensor copying and semantic output-row slicing.
+    - Verify shared GRU/head-hidden/auxiliary tensors and retained output rows at B, including equal-shape direct/residual pairs.
+    - Reuse existing post-construction torch seed reset and matched NumPy replay schedules; verify full-45-coordinate loss/feedback noise draws.
+    - Do not add a new initializer merely to address a mismatch not demonstrated in the actual numerical source.
+  normalization:
+    - Preserve original fixed state/action vectors and epsilon; do not fit separate direct/residual target normalizers.
+    - Integrate only denormalized SI quantities and renormalize reconstructed outputs.
+    - q std is 0.15 rad; endpoint qdot std is 1.0 for hip abduction/adduction, 1.5 for hip flexion/extension and 2.5 for knee flexion/extension joints.
+  objective:
+    state: L_state = mean_over_batch_and_8_steps(sum_45((sampled_reconstructed_zhat - z_true)^2))
+    bounds: L_bound = mean_over_steps(mean(max_logstd) - mean(min_logstd)), existing coefficient 1
+    contacts: Existing mean binary-cross-entropy-with-logits for eight history-force contact labels, coefficient 1
+    base_contact: Existing mean binary-cross-entropy-with-logits for base contact, coefficient 1; not all-cause termination
+    total: Existing dynamics loss lifecycle; sequence and KL terms remain inactive for this single-output GRU configuration
+    sampling: Independent loss and feedback Gaussian draws at each autoregressive step; reconstruct dependent coordinates for each draw and advance persistent orientation only on the feedback draw
+    inference: Existing latent-mean deterministic rollout convention, not the expectation of the nonlinear reconstructed stochastic distribution
+  endpoint_target_tension:
+    isolated_loss: ((q_current+dt*vhat_next-q_true_next)/sigma_q)^2 + ((vhat_next-v_true_next)/sigma_v)^2
+    isolated_optimum: vhat_next-v_true_next = alpha*(vbar_true-v_true_next), alpha = dt^2*sigma_v^2/(sigma_q^2+dt^2*sigma_v^2)
+    meaning: With exact current state and the measured nonzero endpoint defect, the hard update cannot fit both targets exactly. This isolated analytic conflict is not a joint-position error floor; recurrent trajectories, shared features and autoregressive gradients change the actual compromise.
+  verification_after_A:
+    - Unchanged B0 and old transitions/checkpoint meanings; D1 direct-velocity and independent-q equations.
+    - Physical-to-normalized round trips, action offset and actuator semantics, no privileged input.
+    - Gradients through eight autoregressive steps and reconstructed gravity; endpoint/q losses reach intended coordinates.
+    - Recurrent initialization, shape, full/partial reset, checkpoint load and inference/export smoke.
+    - Equal-shape parameter equality, semantic output-row initialization, sampled-noise coupling and policy observation compatibility.
+    - No scientific training during implementation; technical GPU smoke only after C approval.
+secondary_transition:
+  initial_recommendation: Do not train an unrestricted interval-average head as an additional method; it is a semantic interpretation/equality control of D1 joint increments.
+  exact_alias:
+    equation: ubar_normalized = dt*vbar/0.15; qhat_next_normalized = qhat_current_normalized + ubar_normalized
+    distribution: Scale interval-velocity mean and std by dt/0.15 so the induced q samples match the independent residual-q head exactly.
+    consequence: Same reconstructed-state loss and gradients produce no new hypothesis or physical prior.
+  auxiliary_supervision_if_later_approved:
+    target: Ground-truth interval average (q_true_next-q_true_current)/dt, never an endpoint velocity relabeled as an average.
+    scaling: Use q_std/dt = 7.5 rad/s for an equality-control scale; any fitted scale or weight is a separately declared objective change.
+    caution: During autoregression, an auxiliary true-interval target differs from the position loss because the current predicted q differs from true q. Do not define a feedback-dependent correction target and call it the actual interval average.
+  genuinely_structured_candidate_if_needed:
+    equation: qhat_next = qhat_current + dt*(vhat_joint_current + vhat_joint_next)/2 + c_j*tanh(r_j(h))
+    proposed_bound: c_j is the training-only 99.9th percentile of absolute trapezoidal discrepancy for that joint, frozen before any new test inspection.
+    proposed_penalty: None initially. A later 0.01*mean((correction/c_j)^2) penalty would be its own controlled soft-prior/objective ablation, never bundled into D1 or the first bounded-correction contrast.
+    controls: Independently learned q increment, endpoint integration, trained trapezoid without correction, and unrestricted correction with matched output/noise semantics.
+    stochastic_caution: Independently sampled correction and velocity heads change joint/velocity covariance; deterministic function-class similarity does not establish stochastic-loss equivalence.
+    status: Design only, outside initial executable reservation; lower priority because current trapezoid diagnosis shows little accumulated benefit.
+conditional_predictor_corrector:
+  recommendation: Defer. Existing contact concentration is strongest in the forced-integration models; independent-position models do not yet demonstrate that a contact-specific corrector is needed.
+  trigger_before_new_gate:
+    - Under independently predicted q, rapid-transition windows must explain at least half of local error energy while smooth intervals are accurate, consistently across seeds and velocity-matched strata.
+    - Confirm the pattern with separately approved true-history local-error diagnosis; current saved free-running paths alone do not identify smooth-versus-impact transition error.
+    - Residual joint errors must remain practically important after the full factorial, with sufficient remaining hard compute budget.
+    - Rapid windows must occupy at most twenty percent of joint intervals; widespread high error is not evidence for a sparse event corrector.
+  minimal_architecture: A small shared-feature MLP with one 64-unit hidden layer and twelve joint-displacement correction outputs; no privileged contact gating.
+  velocity_correction: Add endpoint velocity corrections only if endpoint errors independently trigger the extension, with a separate q-only versus q-plus-velocity contrast.
+  training_contrast: End-to-end versus predictor-first/frozen-predictor staged training only under a new approved design with matched total optimization/parameter budgets and explicit extra pretraining cost.
+  exclusions: No mass matrix, analytical contact solver, Transformer, Neural ODE or full Lagrangian solver.
+prospective_experiment:
+  seeds_proposed: [33, 44]
+  variants: [B0, B1, B2, D1, E3_direct_velocity]
+  full_training_runs: 10
+  pilot_runs: 5
+  pilot_seed: 33
+  pilot_updates: 1000
+  full_updates: 20000
+  batch_windows: 256
+  history: 32
+  forecast: 8
+  optimizer: {name: Adam, learning_rate: 0.001, weight_decay: 0, max_gradient_norm: 1}
+  no_policy_updates: true
+  original_training_validation_bytes: Reuse immutable train.npz and validation.npz with exact existing SHA256; do not rewrite or recompress their bytes.
+  evaluation_population_proposed:
+    ID: {episodes: 256, environment_seed: 7301, command_seed: 8301}
+    command_shift: {episodes: 256, environment_seed: 7302, command_seed: 8302, strata: 4}
+    identity: Fresh disjoint environment/random streams and precommitted schedules; old evaluation arrays remain exploratory only.
+    sealing: Freeze population manifest before training; inspect only technical provenance/validity until configurations and all checkpoint selections are locked.
+    mechanics: Reuse exact nominal Play mechanics, command distributions, actuator/policy bytes and 40-second maximum recording; no added substep measurement experiment.
+  immutable_dataset_assembly: New manifest retains exact old train/validation files, adds new held-out arrays and their source records, and records the old dataset as parent. All prospective variants use this same manifest.
+  selection: Save each thousand updates; select earliest minimum validation two-second cap-ten physical score under the unchanged reference-eligibility rule; train full budget regardless.
+  evaluation:
+    modes: [A, B, B_shadow]
+    horizons_steps: [10, 50, 100, 250, 500, 1500]
+    initial_fork: 281
+    history_warmup: 32 genuine states after the initial settling interval
+    final_checkpoint_sensitivity: Recorded-action only, secondary to the validation-selected checkpoint
+    stochastic_diagnostic: Existing sixteen recorded-action sample streams, distinct from training replication
+    paired_support: Identical IDs within cells; model-invalid values are capped failures, reference censoring/initialization failures have explicit denominators
+    first_major_error: Original physical score above 1.0 for ten consecutive steps; retain separate numerical/instability onset
+    metrics: Preserve all prior physical/kinematic/behavioural/efficiency definitions and report component errors; no success solely on the composite.
+    composite_score: Per episode, square root of the prefix mean of six equally weighted squared-error blocks; position norm divided by 1 m, orientation geodesic by 1 rad, body linear/angular velocity norms by 1 m/s and 1 rad/s, mean joint-angle squared error by (0.5 rad)^2, and mean joint-speed squared error by (5 rad/s)^2.
+    failure_aware_score: Cap each episode prefix score at ten and assign ten to model-invalid prefixes; restrict matched exact-fidelity contrasts to common reference-eligible episodes and expose initialization/reference censoring separately.
+    uncertainty: Two training seeds, raw paired effects and min/max seed spread only; no aggregate confidence interval or population significance claim. Episodes/joints/time steps and stochastic streams are not extra training replications.
+  visualization:
+    - Reuse articulated playback of fixed saved arrays, without physics state advancement or refreshed forecasts.
+    - Show full four-cell factorial plus B0 using identical initial episodes/commands; D1 is not cherry-picked.
+    - Preselect ID episodes 0/64/128/192 at seed 33 in A/B, plus the predeclared worst B0 two-second case; retain failed and censored cases with held endings labeled.
+    - Plot joint/velocity trajectories, pose errors, first-error timing, quadrature/consistency growth, factorial interactions and conditional contact/command errors.
+cost_forecast:
+  kind: Proposal estimate from the completed L4 campaign; not measured cost or execution authority
+  historical_total_GPU_hours: 9.7347368975
+  hard_total_GPU_hours_including_history: 24
+  remaining_GPU_hours: 14.2652631025
+  pool: [0, 1]
+  max_cumulative_hours_each_device: 12
+  forecast_method: Scale the entire previous eight-model campaign by five/four, then reserve 0.30 GPU-hours for fresh held-out collection; preserves previously failed/overhead costs conservatively.
+  estimated_new_GPU_hours: 12.468421121875
+  estimated_remaining_margin_GPU_hours: 1.796841980625
+  uncertainty: Source import, validation/scoring, stochastic rollouts, simulator-prefix replay, rendering and contention can differ. C must check phase-level estimates, actual hardware and hard scheduler enforcement before dispatch.
+  latency_risk: D1 retains the B1 orientation machinery, whose historical relative overhead failed the retained limit. The initial factorial can answer the accuracy/mechanism question even if promotion is blocked by latency; do not silently waive that rule or promise unmeasured optimization.
+  retry: At most one identical infrastructure retry per cell, and only inside the carried total/per-device cap; numerical failure is scientific failure, not retry authority.
+  reservation_counters:
+    status: Proposed mechanical accounting only; C must bind these counts to executable commands before any GPU use.
+    training_formula: (20000 full + 1000 smoke) * 5 variants * 2 training seeds * 2 attempts
+    training_units: 420000
+    actual_planned_pilots: Five seed-33 pilots; the generic formula conservatively reserves ten before retries.
+    evaluation_unit: Configured episode or displayed articulated body per replay; horizons share each generated trajectory and are not separate populations.
+    all_attempt_evaluation_ledger:
+      selected_and_final_scoring: {formula: '10 models * 2 attempts * 8 cells * 256 episodes', units: 40960}
+      stochastic_recorded_action_streams: {formula: '10 models * 2 attempts * 16 streams * 256 ID episodes', units: 81920}
+      full_run_checkpoint_validation: {formula: '10 models * 2 attempts * 20 checkpoints * 128 episodes', units: 51200}
+      conservative_pilot_validation: {formula: '10 generic pilots * 2 attempts * 128 episodes', units: 2560}
+      fresh_reference_collection: {formula: '2 partitions * 2 attempts * 256 episodes', units: 1024}
+      action_matched_simulator_shadow_collection: {formula: '10 models * 2 attempts * 2 partitions * 256 episodes', units: 10240}
+      illustrative_replays: {formula: '(5 seed-33 models * 5 maximum IDs * 2 modes + 5 seed-44 models * 1 ID) * 2 attempts * 2 displayed bodies', units: 220}
+    evaluation_units_sum: 188124
+    evaluation_units_ceiling: 200000
+    evaluation_units_margin: 11876
+    exclusions_from_episode_counter: Batch-one latency warmup/measurement loops are inference calls, not additional evaluation episodes. Their allocated GPU time and memory remain charged to the hard all-phase GPU-hour ceiling.
+    shadow_accounting: Eight scored cells per model comprise selected A/B/B-shadow on each partition and final-checkpoint A on each partition. Shadow reference generation is separately charged above; B-shadow scoring reuses saved predictions without new neural rollout but remains reserved.
+    budget_interpretation: These are conservative proposed counters before first approval, not extra training or follow-up permission. Existing old campaign allocations remain charged to the carried GPU-hour ceiling. No C/D extension or unlisted phase may use the margin without renewed independent review within existing authority.
+  exclusion: No C/D neural extension fits this initial reservation by default; do not consume remaining budget on unapproved follow-ups.
+ranking:
+  - {rank: 1, alternative: D1 plus the complete prospective factorial, evidence: Strongest discriminating value from the missing cell and direct saved-data diagnosis, expected_gain: Unknown before prospective testing, complexity: Low model change plus matched replication, novelty: Controlled mechanistic diagnosis and engineering validation rather than a new flow-map algorithm}
+  - {rank: 2, alternative: Trained trapezoidal integration as a separate future control, evidence: Moderate one-step evidence but weak accumulated oracle benefit and worse frozen-prediction readout, expected_gain: Not established, complexity: Low, novelty: Low}
+  - {rank: 3, alternative: Bounded interval correction or separately weighted interval-average supervision, evidence: Mechanistically plausible but untested beyond an equivalent increment parameterization, expected_gain: Unknown with endpoint-velocity and tail-bias risks, complexity: Moderate, novelty: Modest controlled inductive-bias study}
+  - {rank: 4, alternative: Lightweight predictor-corrector, evidence: MoSim supports a decomposition in other benchmarks but current independent-q errors do not trigger it, expected_gain: Unknown, complexity: Moderate with staged-budget and identifiability costs, novelty: Incremental adaptation}
+  - {rank: 5, alternative: Full mechanical or continuous-time solver architectures, evidence: Indirect and interface-mismatched for this task, expected_gain: Unknown, complexity: High, novelty: Not sufficient justification for adoption}
+  - {rank: excluded, alternative: Unrestricted interval-average head or B3 acceleration, evidence: Algebraic reparameterization under matched scaling and induced loss/distribution, expected_gain: No distinct mechanism in an exact equality control, complexity: Redundant training, novelty: None}

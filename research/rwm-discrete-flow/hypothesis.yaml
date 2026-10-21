@@ -1,0 +1,193 @@
+schema_version: 1
+group: rwm-discrete-flow
+hypothesis_version: 1
+title: Direct endpoint velocities with learned interval joint displacement
+claim: On an independent frozen-policy ANYmal-D evaluation population, direct next-velocity
+  prediction with independently learned joint-position increments can improve two-second
+  physical trajectory error by at least twenty percent over B0 while preserving articulation,
+  autonomous behaviour and real-time throughput. A common-orientation factorial separates
+  velocity parameterization from hard endpoint joint integration.
+mechanism: Decouple instantaneous endpoint joint velocity from the control-interval
+  joint displacement. Test whether the direct-velocity benefit observed only under
+  hard integration persists when joint positions are predicted independently, instead
+  of requiring velocities to compensate for an inaccurate discrete joint-update identity.
+  This is a proposed mechanism, not an established cause of the historical result
+  or a new claim that RWM lacks a discrete flow map.
+changes:
+- D1 retains the E3 direct normalized next-velocity head for body linear/angular and
+  joint velocities, but restores B1 independent residual joint-position outputs.
+- Complete B1/B2/D1/E3 direct-versus-residual by independent-versus-integrated factorial
+  with identical orientation integration.
+- Train a separately matched B0 reference for prospective engineering thresholds;
+  exclude it from the factorial main effects.
+held_fixed:
+- ANYmal-D, nominal flat terrain, frozen qualified policy bytes, 50 Hz and original
+  action/actuator semantics.
+- Original immutable training and validation array bytes, fixed normalization, episode-safe
+  window sampling and action alignment.
+- Separate two-layer 256-unit state and auxiliary GRUs, 128-unit heads, one ensemble
+  member, history 32 and eight autoregressive training steps.
+- Reconstructed 45-state sampled-MSE objective, original bound/contact/base-contact
+  losses, optimizer and twenty-thousand-update budget.
+- Original seeded baseline-to-variant tensor copying and post-construction training
+  RNG reset; verify rather than introduce a new initializer.
+- Common endpoint SO(3) orientation treatment in all four factorial cells, and common
+  pose scoring/readout in all five configurations.
+- Validation-only checkpoint selection; fresh held-out population sealed against model/threshold
+  selection.
+inputs:
+  deployable:
+  - Current and historical body-frame linear/angular velocities, projected gravity,
+    relative joint positions, joint velocities, torques and raw joint-position-target
+    actions.
+  - Recurrent memory warmed on 32 genuine states and carried through each uninterrupted
+    imagined trajectory.
+  - Local orientation initialized from measured tilt with arbitrary yaw; local translation
+    initialized at zero.
+  privileged:
+  - Simulator poses, contact-history labels and future state/action recordings only
+    as training targets, existing-data diagnosis or evaluation references; no future
+    truth is fed into imagination.
+gradient_ownership: Only world-model parameters train through the original dynamics
+  optimizer lifecycle. Reconstructed autoregressive states remain differentiable;
+  the auxiliary GRU uses its original teacher-forced targets. The frozen policy receives
+  no training gradients. No simulator gradient, future contact input or privileged
+  global pose enters deployed dynamics.
+baselines:
+- 'B0: original residual RWM; external promotion reference, not a common-orientation
+  factorial cell.'
+- 'B1: residual velocity with independent residual joint positions and integrated
+  orientation.'
+- 'B2: residual velocity with endpoint-integrated joints and integrated orientation.'
+- 'E3_direct_velocity: direct velocity with endpoint-integrated joints and integrated
+  orientation.'
+primary_metric:
+  name: failure_aware_recorded_action_physical_trajectory_nrmse_2s
+  direction: lower
+  unit: dimensionless six-block SI-scaled trajectory score, cap ten for model-invalid
+    samples
+secondary_metrics:
+- Finite-pair trajectory score and all physical components at 0.2/1/2/5/10/30 seconds.
+- Joint-position and endpoint joint-velocity RMSE separately; body linear/angular
+  velocity and pose accuracy.
+- Direct/residual main effect, integration main effect and their interaction, each
+  per fresh training seed.
+- Autonomous policy outcomes and candidate-specific action-matched simulator shadows,
+  with distinct interpretations.
+- First major error, error growth, stability duration, command tracking and numerical
+  divergence.
+- Model and policy-plus-model latency, memory, parameters, optimization and all-attempt
+  GPU cost.
+constraints:
+- At most five percent degradation of the 0.2-second trajectory score relative to
+  matched B0.
+- At most five percent joint-position and endpoint joint-velocity RMSE degradation
+  at each of one, two and five seconds relative to matched B0; also report comparison
+  with B1.
+- At most two percentage points added thirty-second autonomous instability and ten
+  percent command-tracking degradation, with no increased numerical divergence.
+- At most twenty percent model-p95 latency overhead relative to matched B0 and policy-plus-model
+  p95 below twenty milliseconds on the same GPU type and dtype.
+- No policy retraining, changed normalization, forecast-horizon change or neural C/D
+  extension in the initial campaign.
+minimum_meaningful_effect:
+  primary_relative_reduction: 0.2
+  mean_1_2_5s_relative_reduction: 0.15
+  autonomous_shadow_2s_relative_reduction: 0.15
+  aggregation: Equal-weight mean of the two fresh seed-relative paired effects; both
+    seed effects improve, as the retained descriptive engineering rule, not a population
+    robustness claim.
+evaluation_unit: One predeclared episode fork per independently generated evaluation
+  episode, paired across model configurations within training seed and mode.
+paired_factors:
+- training_seed
+- evaluation_partition
+- episode_id
+- fork_step
+- horizon_steps
+- mode
+anticipated_confounders:
+- Historical tests and seeds informed this proposal and cannot confirm it; fresh data
+  and seeds are required.
+- Two new training seeds permit a prospective engineering replication but not a precise
+  population effect or aggregate confidence interval.
+- D1/B1 have 42 independent distribution coordinates; E3/B2 have 30. The 3120-parameter
+  joint-structure difference must be reported, without useless padding.
+- Direct/residual choices alter an identity skip, initial predictions and information/gradient
+  paths through a finite GRU; direct targets do not have smaller empirical variance
+  here.
+- Endpoint quadrature and learned velocity errors can strongly cancel; their marginal
+  squared magnitudes are not additive causal contributions.
+- Trapezoidal and endpoint cumulative updates differ only by an endpoint velocity
+  term on a fixed sample sequence; lower one-step discrepancy need not lower long-horizon
+  drift.
+- Saved free-running state errors conflate state-distribution drift with local prediction
+  error; contact associations do not identify a teacher-forced causal contact failure.
+- Contact labels aggregate force history and reveal neither exact impact times nor
+  unrecorded physics-substep motion.
+- D1 and a correctly scaled unrestricted interval-average head are equivalent joint-increment
+  parameterizations, not distinct physics priors.
+- Own-action shadow references differ across candidates; common support and action-distribution
+  limitations must be explicit.
+- Fixed orientation/translation quadrature and missing absolute root height remain
+  limitations shared by the initial factorial.
+- D1 retains the orientation-reconstruction cost; historical B1 already exceeded the
+  relative latency-overhead target despite satisfying the absolute real-time ceiling.
+  Accuracy success alone cannot authorize promotion.
+support_if:
+- The predeclared D1-versus-B0 engineering contrast meets all three meaningful-effect
+  thresholds, both-seed direction rule and every noninferiority/stability/latency
+  constraint on fresh data.
+- Factorial conditional effects and interaction are reported on the same paired support,
+  including D1 versus B1 and E3 versus B2; no historical missing-cell imputation is
+  used.
+- Endpoint velocity accuracy is preserved independently of joint displacement, and
+  accuracy improves beyond zero algebraic inconsistency or rendering changes.
+contradict_if:
+- Complete valid prospective evidence misses a meaningful-effect target or fails articulation,
+  autonomy, numerical or latency constraints; do not promote based only on the composite.
+- Direct-head gains occur only in the integrated arm and fail to transfer to D1; retain
+  that interaction as a negative result.
+inconclusive_if:
+- Fewer than two valid fresh training-seed pairs or an incomplete factorial prevent
+  the planned replication.
+- Provenance, population independence, action timing, checkpoint selection or common-support
+  comparability cannot be verified.
+- Population-level effects remain inconclusive with two seeds even if the descriptive
+  engineering targets pass.
+checkpoint_export_impact: Existing B0/B1/B2/E3 checkpoints and frozen actor remain
+  readable without changing their defaults. D1 construction metadata identifies direct
+  velocities with independent joints; its output head matches B1's dimensions and
+  preserves the external 45-state/policy interface. Future exports retain recurrent
+  and local-pose state semantics; no new privileged input is introduced.
+notes: Full proposed design is in proposal.yaml; existing-data measurements are immutable
+  exploratory diagnostics with hashed inputs. Seeds 33/44, five configurations, exact
+  prospective evaluation schedules and budget are proposals requiring independent
+  A and later B/C approvals. No model implementation or neural experiment has occurred
+  for this comparison. The original physical- consistency rejection is preserved and
+  is not reconsidered by this hypothesis.
+design_record:
+  path: research/rwm-discrete-flow/proposal.yaml
+  sha256: 5afb8c55b492c7f69c3ce798da18ea78b8e26d22cff95356f760a4c94eb9fd78
+framing_evidence:
+  literature:
+    file: research/rwm-discrete-flow/literature.yaml
+    sha256: 93b2dbebf02bf767725e9515d3020695ae537a9938f9ee2492dc206ac7251437
+  source_audit:
+    file: research/rwm-discrete-flow/source_evidence.yaml
+    sha256: d6e0ed7bc9ed3a64d5b7cd2d185b80059f3616f2bba683233150572ad5361a6f
+  diagnosis:
+    file: logs/queue/rwm-discrete-flow/diagnosis-v2/diagnosis.json
+    sha256: 628448ea95214288639cc43e0e038bb0d94cd539f969e24ef26b9399c94850c0
+  target_and_contact_diagnosis:
+    file: logs/queue/rwm-discrete-flow/target-contact-v2/supplement.json
+    sha256: 8678703c45dded52254bdb5c238a688df555eeab51ad970ca9e0f38856b937f8
+  diagnostic_verification:
+    file: logs/queue/rwm-discrete-flow/diagnosis_verification.json
+    sha256: 134e0dc32894e218f6dc0efa6463133ca04b1ac2de8782ac95809b7fb36c5d17
+  report_proposal_intro:
+    file: logs/queue/rwm-discrete-flow/proposal_intro.v1.md
+    sha256: bcebed261fe7c16946ee1db6b8a52652a15cbc4f1176a604e2dacbfd60100b22
+framing_diagnostic_archive_proposed: oxdynamics/rwm-explore/rwm-discrete-flow-integration-diagnosis:v0;
+  planned after A approval, not an existing artifact claim; member hashes above must
+  match before publication

@@ -1,0 +1,141 @@
+schema_version: 1
+as_of: '2026-10-21'
+purpose: Critical evidence synthesis for a proposed fixed-control-rate GRU factorial;
+  no universal architecture ranking.
+sources:
+- key: rwm
+  url: https://arxiv.org/abs/2501.10100
+  inspected_pdf_url: https://arxiv.org/pdf/2501.10100
+  pdf_sha256: 613d81eb472e437a76447f408f46ddeb0d786da29fae81e66089db1bfb1b7a14
+  reviewed_sections: Sections 3, 4 and appendices A.2-A.4
+  direct_evidence: Autoregressive recurrent observation transitions and history/forecast
+    ablations support retaining the GRU and multistep loss. The implemented baseline
+    already learns state residuals at the control rate.
+  boundary_of_inference: No isolated direct-velocity versus residual-velocity by independent-position
+    versus integrated-position factorial; policy learning and plausible motion do
+    not establish exact long trajectories.
+- key: rwmu
+  url: https://arxiv.org/abs/2504.16680
+  inspected_pdf_url: https://arxiv.org/pdf/2504.16680
+  pdf_sha256: b0906b92791f4bf4c1b0758c1a53ce1ab1fb62baee1e556995b34c8fb7e74ddb
+  reviewed_sections: Sections 3-6 and appendices
+  direct_evidence: Ensemble disagreement and uncertainty-aware policy optimization
+    address exploitation and distribution coverage; the reported limitation includes
+    accumulating model error.
+  boundary_of_inference: Changing ensembles or policy learning would confound this
+    frozen-policy transition study; uncertainty mitigation does not identify the correct
+    sampled kinematic relation.
+- key: mosim
+  url: https://arxiv.org/abs/2504.07095
+  inspected_pdf_url: https://openaccess.thecvf.com/content/CVPR2025/papers/Hao_Neural_Motion_Simulator_Pushing_the_Limit_of_World_Models_in_CVPR_2025_paper.pdf
+  pdf_sha256: 7e5265ba41c2dc2757917b071bded316b93b6dd754485fa965f7b92a3fe9f402
+  reviewed_sections: Published CVPR Sections 2, 3.1, 3.3, 3.9; Go2 tables
+  direct_evidence: Structured learned predictor, state/action terms, inertia-like
+    factorization, residual correctors and staged training improve its benchmarks
+    relative to near-size-matched baselines. It integrates with DOPRI5.
+  boundary_of_inference: 'Go2 is simulated, not Go2W. Staging is not uniformly better:
+    reported Go2 hundred-step state MSE is 0.1282 for MoSim versus 0.1401 staged.
+    It does not isolate the proposed GRU factorial or certify thirty-second accuracy.'
+- key: ssrl
+  url: https://proceedings.mlr.press/v270/levy25a.html
+  inspected_pdf_url: https://raw.githubusercontent.com/mlresearch/v270/main/assets/levy25a/levy25a.pdf
+  pdf_sha256: 4dad658c6c7661f02d4051c674abfcfa2fc63399f676295d302d909dd1c9782e
+  reviewed_sections: Sections 3-4; appendices A-D
+  direct_evidence: History-conditioned generalized external torques are combined with
+    known Lagrangian mechanics and a multistep probabilistic objective; real Go1 policy
+    learning and simulated model-prediction comparisons support partial structure.
+  boundary_of_inference: Different actions/measurements and runtime mechanical propagation;
+    a Vicon-based velocity estimate and gait-generator policy interface differ from
+    this benchmark. No direct evidence for endpoint joint integration at our control
+    rate.
+- key: nerd
+  url: https://arxiv.org/abs/2508.15755
+  inspected_pdf_url: https://raw.githubusercontent.com/mlresearch/v305/main/assets/xu25g/xu25g.pdf
+  pdf_sha256: 78e1f81d6bb0fc3191638671ea02e298b24d8c0afd776906e4d7fa082d4bcd76
+  reviewed_sections: Sections 3.2-3.3, 5; Appendix A multi-substep prediction and
+    C.5 ablations
+  direct_evidence: Explicitly predicts macro-step state differences spanning multiple
+    analytical simulator substeps, including independent configuration and velocity
+    changes. Robot-centric state and output normalization are important.
+  boundary_of_inference: Uses collision-query contact geometry and a Transformer.
+    Absolute-state prediction worsens Double Pendulum error by 26 times in its ablation,
+    which opposes a universal direct-prediction claim; that ablation changes all state
+    targets, not only velocity skips.
+- key: gns
+  url: https://arxiv.org/abs/2002.09405
+  inspected_pdf_url: https://proceedings.mlr.press/v119/sanchez-gonzalez20a/sanchez-gonzalez20a.pdf
+  pdf_sha256: 85b52bea0da38cf5d41b77031794a91e9d5d9b43e64b95c00e14b66e306a5d53
+  reviewed_sections: Sections 3-5, Section 4.2 footnote and supplementary representation
+    details
+  direct_evidence: Inputs use position-derived finite-difference velocities; targets
+    are position-derived discrete accelerations. Under its update, acceleration loss
+    is equivalent to position loss up to fixed scaling. Noise injection and message
+    passing matter for long rollouts.
+  boundary_of_inference: This is not evidence that independently recorded simulator
+    endpoint joint velocities should integrate to robot positions. Particle/material
+    results are not an isolated articulated robot controller experiment.
+- key: liefvin
+  url: https://proceedings.mlr.press/v211/duruisseaux23a.html
+  inspected_pdf_url: https://proceedings.mlr.press/v211/duruisseaux23a/duruisseaux23a.pdf
+  pdf_sha256: 27390f693326bf9fdb04bfc7cc931428e4692eb40f818a5b14b0a5da6801a08a
+  reviewed_sections: Sections 4.2-4.4, Algorithms Ia/Ib, Section 5
+  direct_evidence: Learns forced variational discrete updates on Lie groups with geometric
+    structure, evaluated on pendulum and simulated Crazyflie control. Short training
+    trajectories support long unforced energy/geometry tests.
+  boundary_of_inference: 'No contact-rich quadruped factorial. Absence of an ODE solver
+    does not imply no mechanical terms or implicit solve: Algorithm Ia uses Newton
+    iterations; Ib trains an equation residual using observed next rotation.'
+- key: ott
+  url: https://arxiv.org/abs/2007.15386
+  inspected_pdf_url: https://arxiv.org/pdf/2007.15386
+  pdf_sha256: 103a13794f8569df66f876092d4f93b5a0a5dff3f28b6bbbcad918825d974ca1
+  reviewed_sections: Sections 2-4 and solver-switch/step-size ablations
+  direct_evidence: Coarsely trained neural ODEs can rely on their numerical method;
+    a more accurate test solver can reduce task accuracy.
+  boundary_of_inference: Classification/synthetic examples, not quadruped dynamics.
+    This warns against changing a learned integrator only at evaluation, rather than
+    proving that any particular quadrature is optimal.
+- key: zhu
+  url: https://proceedings.mlr.press/v162/zhu22f.html
+  inspected_pdf_url: https://proceedings.mlr.press/v162/zhu22f/zhu22f.pdf
+  pdf_sha256: 131ce151ce9f3089c40052c656b45e391eee1d76422bd4beff839c514a7493e2
+  reviewed_sections: IMDE construction, error analysis and numerical experiments
+  direct_evidence: Explains solver-dependent learned vector fields via inverse modified
+    differential equations; learned fields can compensate for numerical discretization.
+  boundary_of_inference: Smooth/analytic-system assumptions and numerical studies
+    do not establish a contact-robot error bound. The work supports distinguishing
+    the numerical flow from a physical derivative.
+- key: roadmap
+  url: https://arxiv.org/abs/1902.00683
+  inspected_pdf_url: https://arxiv.org/pdf/1902.00683
+  pdf_sha256: e9b4f8cc78f82c27d5441c379b1d8120b151aa6fddb245612f525dd5372b8dfa
+  reviewed_sections: Prediction versus simulation objectives, validation, excitation
+    dependence and supplement on continuous-to-discrete nonlinear state-space models
+  direct_evidence: Direct discrete-time identification can better match sampled data
+    than naive derivative discretization; validation must match intended prediction/simulation
+    use and excitation.
+  boundary_of_inference: Not a robot-architecture benchmark or proof of universal
+    discrete-map superiority. Sampling, observability and input-distribution limitations
+    remain.
+- key: hamiltonian_mean_flow
+  url: https://arxiv.org/abs/2601.22123
+  inspected_pdf_url: https://arxiv.org/pdf/2601.22123
+  pdf_sha256: 55495163550ddcdc53991aeea71251abd86f8d497bb9ad591e8acad085e2f290
+  reviewed_sections: Version 4, Sections 2-5 and timestep/mean-flow formulation
+  direct_evidence: Separates instantaneous derivatives from interval-mean phase-space
+    evolution and learns large-step flow maps using a consistency objective, with
+    molecular-dynamics evidence.
+  boundary_of_inference: Conservative Hamiltonian systems and force-labeled data differ
+    from driven, dissipative contact locomotion. Our interval-average joint label
+    is observable from trajectory displacement, but their trajectory-free force-consistency
+    loss is not directly available.
+- key: contact
+  url: https://proceedings.mlr.press/v130/hochlehnert21a.html
+  inspected_pdf_url: https://proceedings.mlr.press/v130/hochlehnert21a/hochlehnert21a.pdf
+  pdf_sha256: b3eb48a4bb430bcfd26294234755ecbb3d2af04c4b83eaea1a121c818b262a60
+  reviewed_sections: Model formulation, idealized touch ablation and experiments
+  direct_evidence: Structured contact learning uses event/impact modeling, and idealized
+    touch supervision changes success substantially in simple collision systems.
+  boundary_of_inference: Bouncing-ball and simple mechanical examples do not justify
+    adding an unobserved contact gate or analytical contact solver to this GRU. Our
+    history-force labels are not exact touch-event timestamps.

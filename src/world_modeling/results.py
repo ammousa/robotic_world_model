@@ -342,7 +342,7 @@ def publish(protocol, cells):
                 f"variant:{variant}",
                 f"seed:{seed}",
                 f"protocol:{protocol['protocol_id']}",
-                f"ckpt:{file_digest(selected)}",
+                f"ckpt:{file_digest(selected)[:12]}",
             ],
         ) as run:
             artifact = wandb.Artifact(

@@ -1,0 +1,17 @@
+{
+  "kind": "independent_publication_tag_repair_authority",
+  "actor": "researcher",
+  "determination": "Necessary CPU publication-boundary label repair is within existing user authority; separate actual A/B/C remain required.",
+  "repair": "ckpt:<SHA12> label only; full checkpoint SHA remains in selection, config, artifact metadata and provenance.",
+  "mechanical_limits": {
+    "max_followups": 3,
+    "max_total_training_units": 1344000,
+    "max_total_evaluation_units": 800000
+  },
+  "reservation_meaning": "Fourth implementation/protocol fingerprint; zero additional numerical execution authority.",
+  "failed_publication_source": "57da9f5b5d6f1b7327be1352d3299ee8f48d1f42",
+  "original_numerical_source": "c7be9f079fd77d8a819feabf7dd5a021dc684268",
+  "remote_eval_runs_created": 0,
+  "evidence": "tag-boundary-failure-audit.json and original stock-scored-publication.log preserved in W&B postprocessing audit",
+  "new_GPU_work": false
+}

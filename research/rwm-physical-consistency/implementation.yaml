@@ -98,8 +98,7 @@ architecture:
 implementation_scope: Model module, immutable fixed-data adapter and explicitly separate world-model scoring
   over the existing train.py/play.py and queue APIs. Existing RL paths preserved.
 verification:
-  cpu_suite: 284 passed, 1 pre-existing matplotlib open-figure warning; PYTHONPATH=src:<algorithm-worktree>
-    python -m pytest tests/test_research_*.py -q
+  cpu_suite: 285 passed, 1 pre-existing matplotlib open-figure warning; full repository workflow suite.
   policy_forward: stock ActorCritic, frozen boundary and traced actor agree bitwise on CPU
   simulator_smoke: Not launched; requires Gate C and is charged to the same GPU budget
   checkpoint: Structured dynamics checkpoints carry construction metadata, training source and protocol;
@@ -117,9 +116,9 @@ verification:
   device_placement: Eight CPU cases verify inherited visibility removal, physical PCI order, CPU/cuda:2/cuda:3
     selection before train/score model construction, and explicit timing synchronization/memory devices
     without allocating CUDA.
-  publication_boundary: '12 CPU regression cases: selected timing remains mandatory; final sensitivity
-    timing is optional; unknown role, checkpoint identity, population/failure retention and terminal censoring
-    remain strict.'
+  publication_boundary: 13 CPU regression cases pass with W&B SDK 0.24.2 transport. Actual publisher tags
+    pass real SDK Settings validation; full checkpoint SHA remains in config. Selected/final timing, identities,
+    failures and censoring remain strict.
   existing_evidence_matrix: 64/64 original scoring cells, 196608 stochastic rows and 44 replay outcomes
     passed CPU-only content/identity/population/censoring verification; every numerical fingerprint remains
     original c7be9f0; zero neural forward calls or physics steps.
@@ -168,3 +167,18 @@ publication_repair:
   timing_fabricated: false
   analysis_only_additions: W&B-only descriptive slices, complete historical GPU-cost reconciliation, physical/behaviour/validity
     plots and existing-video composition; portable training-data integration audits.
+publication_tag_repair:
+  scope: One label-format line only; no model, data, scoring or protocol change.
+  failed_publication_commit: 57da9f5b5d6f1b7327be1352d3299ee8f48d1f42
+  failure: 'SDK rejects a 69-character ckpt: plus full SHA tag; zero evaluation runs were created, confirmed
+    by read-only API audit.'
+  change: Use ckpt:<first 12 SHA characters> only as a label.
+  full_SHA_preserved:
+  - checkpoint selection
+  - configuration
+  - artifact metadata
+  - scored provenance
+  regression: Actual publisher with mocked verification/remote API, real SDK Settings tag validation;
+    previous code reproduces rejection, repair passes without SDK init or remote writes.
+  numerical_source_commit: c7be9f079fd77d8a819feabf7dd5a021dc684268
+  new_numerical_runs: 0

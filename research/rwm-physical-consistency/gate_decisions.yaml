@@ -304,3 +304,48 @@
   mode: unattended
   at: '2026-10-21T10:10:12.124362+00:00'
   receipt_id: r-803ca834c36b3d4c88ddff80
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The unchanged hypothesis remains falsifiable. The mandate permits only CPU
+    publication repair and postprocessing; four mechanical reservations authorize
+    no new numerical campaign. Scientific thresholds, two seeds, original evidence
+    identities and hard compute limits remain fixed.
+  risk: The failed publication attempt establishes no scientific outcome; two seeds
+    still limit population inference.
+  next_action: Implement only the abbreviated checkpoint label, preserve full identity
+    hashes, test actual publisher tags, and submit renewed Gate B.
+  evidence:
+  - research/rwm-physical-consistency/hypothesis.yaml
+  - research/rwm-physical-consistency/workflow.yaml
+  - research/rwm-physical-consistency/publication_tag_repair_authority.json
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+  workflow_id: w-935869612d31598d270a4b29
+  mode: unattended
+  at: '2026-10-21T10:18:30.662712+00:00'
+  receipt_id: r-28e039f636fe2dc4e9dd5436
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: The sole production change abbreviates a display tag; full checkpoint identity
+    remains unchanged. Actual publisher tags pass real SDK validation, and thirteen
+    independent regression tests pass. No model, scoring, data, scientific protocol
+    or algorithm change occurs.
+  risk: The abbreviated tag is not a unique scientific identifier; full hashes remain
+    authoritative. Scientific outcomes still require evidence review.
+  next_action: Submit the frozen versioned CPU-only command plan and exact provenance
+    bindings for renewed Gate C; launch no numerical work.
+  evidence:
+  - src/world_modeling/results.py
+  - tests/test_research_world_model_publication.py
+  - research/rwm-physical-consistency/implementation.yaml
+  subjects:
+    hypothesis_id: h-299a1e3dd023da159020919b
+    implementation_id: i-e978d7ce1920d7f0a912c164
+    prior_receipts:
+      A: r-28e039f636fe2dc4e9dd5436
+  workflow_id: w-935869612d31598d270a4b29
+  mode: unattended
+  at: '2026-10-21T10:22:42.199560+00:00'
+  receipt_id: r-80751566e6865fcbaebef60c

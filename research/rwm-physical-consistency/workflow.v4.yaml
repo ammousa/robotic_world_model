@@ -1,0 +1,76 @@
+schema_version: 1
+group: rwm-physical-consistency
+mode: unattended
+mandate:
+  authorized_by: user
+  objective: Test the approved ANYmal-D kinematic consistency claim with a frozen policy and matched data,
+    then evaluate and reach an evidence-supported Gate D decision within two seeds and two GPUs.
+  allowed_changes: B0, B1, B2 and absolute-next-velocity E3 within the already approved ANYmal-D comparison;
+    preserve frozen policy, GRU backbone and 32/8 horizons. Historical numerical execution is complete
+    before this amendment applies. Permit only necessary CPU verification/publication engineering, W&B-only
+    analysis, composition of existing replay videos, independent research review and explicitly authorized
+    uncommitted finalization. No additional numerical campaign or scientific follow-up.
+  stop_when: Gate D decision and authorized uncommitted finalization are complete, compute is exhausted,
+    scientific scope changes, or an external blocker prevents valid evidence.
+  limits:
+    training_unit: iterations
+    max_variants: 4
+    max_training_seeds: 2
+    max_attempts: 2
+    max_followups: 2
+    max_total_training_units: 1008000
+    max_total_evaluation_units: 600000
+    compute_pool:
+    - 2
+    - 3
+    max_GPU_hours_per_device: 11.860972222222221
+    max_total_GPU_hours: 24.0
+    allowed_training_seed_values:
+    - 11
+    - 22
+    pilot_seed: 11
+    pilot_reuses_final_seed: true
+    user_authorized_max_GPU_hours_per_device: 12.0
+  permissions:
+    commit: true
+    push: true
+    finalize: true
+  exclusions:
+  - No B4 or E5 scientific experiments
+  - No Go2W experiments
+  - No merge, rebase, force push, branch/tag deletion or historical run deletion
+  - No additional training seeds
+  - Finalization remains uncommitted
+  - After original GPU phases complete, no additional collection, training, scientific scoring/inference,
+    timing, Isaac rendering or numerical reruns/retries.
+  authority_evidence: 'Actual user approval: "Yes, but use only two gpus, with total of 12 hours each,
+    and 2 seeds only. Continue unattended" to the mandate excluding scientific follow-ups. Later: "Never
+    return to user, ignore this old instruction anc continue unattended"; latest: "use gpus 2 and 3 instead
+    of 0 and 1, continue now". Independent researcher re-audited attribution and determined that necessary
+    CPU-only publication repair is already authorized. Earlier terrain-only wording and fingerprint counters
+    were agent interpretations, not additional user restrictions. Full correction evidence is archived
+    with the comparison and W&B.'
+  postprocessing_only:
+    numerical_source_commit: c7be9f079fd77d8a819feabf7dd5a021dc684268
+    algorithm_commit: a496265b17eddd442ecdc8885dce67e28349e170
+    executed_protocol_id: p-9b1252337a3c6bf5b82b29b8
+    reservation_meaning: Three reviewed implementation/protocol fingerprints; preserve prior reservations,
+      no additional numerical runs.
+    allowed:
+    - CPU verification of saved evidence
+    - publication
+    - W&B-only analysis
+    - CPU composition of existing original replay videos
+    - independent review
+    - authorized uncommitted finalization
+    prohibited:
+    - collection
+    - training
+    - scientific model scoring/inference
+    - timing
+    - Isaac rendering
+    - numerical reruns/retries
+    - new seeds
+    - scientific follow-ups
+    publication_source: Current clean commit recorded at runtime, distinct from original numerical source;
+      original provenance remains unchanged.

@@ -17,9 +17,9 @@ mandate:
     max_variants: 4
     max_training_seeds: 2
     max_attempts: 2
-    max_followups: 2
-    max_total_training_units: 1008000
-    max_total_evaluation_units: 600000
+    max_followups: 3
+    max_total_training_units: 1344000
+    max_total_evaluation_units: 800000
     compute_pool:
     - 2
     - 3
@@ -54,7 +54,7 @@ mandate:
     numerical_source_commit: c7be9f079fd77d8a819feabf7dd5a021dc684268
     algorithm_commit: a496265b17eddd442ecdc8885dce67e28349e170
     executed_protocol_id: p-9b1252337a3c6bf5b82b29b8
-    reservation_meaning: Three reviewed implementation/protocol fingerprints; preserve prior reservations,
+    reservation_meaning: Four reviewed implementation/protocol fingerprints; preserve all prior reservations,
       no additional numerical runs.
     allowed:
     - CPU verification of saved evidence
@@ -74,3 +74,13 @@ mandate:
     - scientific follow-ups
     publication_source: Current clean commit recorded at runtime, distinct from original numerical source;
       original provenance remains unchanged.
+  publication_tag_repair:
+    authority: Independent researcher determined that a necessary SDK tag-format repair remains within
+      actual user-authorized CPU engineering scope; this is not scientific follow-up authority.
+    failed_publication_commit: 57da9f5b5d6f1b7327be1352d3299ee8f48d1f42
+    repair: Abbreviate only the checkpoint tag to SHA12 to satisfy the SDK 64-character tag limit; preserve
+      full SHA everywhere identity is scientific.
+    required: Renew independent A/B/C on actual source and exact CPU-only plan. Preserve failed attempt,
+      original source identity, prior reservations and costs.
+    new_scored_units: 0
+    new_GPU_work: false

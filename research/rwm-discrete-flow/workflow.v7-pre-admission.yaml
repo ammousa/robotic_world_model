@@ -1,0 +1,183 @@
+schema_version: 1
+group: rwm-discrete-flow
+mode: unattended
+mandate:
+  authorized_by: user
+  objective: Diagnose fixed-control-interval prediction errors and independently approve a falsifiable ANYmal-D
+    discrete-time dynamics design before any method implementation or training.
+  allowed_changes: Existing-evidence CPU diagnosis, literature review, scientific contracts, proposal and W&B reporting
+    now. Subsequent D1/common-orientation factorial implementation and matched experiments require independent design
+    approval and normal B/C gates. Interval-aware and predictor-corrector extensions remain conditional proposals.
+  stop_when: A defensible approved research design and authorized subsequent decision are complete, the carried
+    resource ceiling is exhausted, or the mandate would be exceeded.
+  limits:
+    training_unit: iterations
+    max_variants: 5
+    max_training_seeds: 2
+    max_attempts: 4
+    max_followups: 6
+    max_total_training_units: 3780000
+    max_total_evaluation_units: 1400000
+    compute_pool:
+    - 2
+    - 3
+    max_GPU_hours_per_device: 12.0
+    max_total_GPU_hours: 24.0
+    prior_comparison_GPU_hours: 9.861959119722222
+    remaining_total_GPU_hours: 14.138040880277778
+    prior_device_GPU_hours:
+      '0': 0.22250000000000003
+      '1': 0.1827777777777778
+      '2': 4.696403564166667
+      '3': 4.760277777777778
+    proposed_training_seeds:
+    - 33
+    - 44
+    pilot_reuses_final_seed: true
+  permissions:
+    commit: true
+    push: true
+    finalize: true
+  authority_evidence: 'Follow-up user instruction authorizes research, technical diagnosis and experimental design,
+    explicitly prohibits implementation/training until independent design approval, and delegates decisions through
+    the unattended research workflow on GPUs 0/1. Earlier actual user resource authorization remains two GPUs, twelve
+    cumulative hours each, twenty-four total, two training seeds. Independent researcher scope assessment on 2026-10-21
+    confirms conditional later implementation/execution only after independent design approval and normal B/C gates.
+    Actual user instruction2026-10-22T07:56:11.939Z reassigns the same campaign to GPUs2/3 and directs immediate
+    continuation/blocker reporting. Only necessary mechanical second-fingerprint ceilings are raised; zero additional
+    scientific runs/cells/seeds/updates/retries/follow-ups and no added GPU-hour authority. Independent researcher
+    permits preparation of a narrowly identity-bound training/pilot-only inactive-context admission correction under
+    the actual same user resource instruction. A third fingerprint is a mechanical engineering reservation only;
+    new dispatch still requires actual renewed A/B/C, with no additional scientific runs, attempts, updates, seeds,
+    retries, follow-ups or GPU-hour authority. Independent startup-heartbeat-scope-assessment.json permits preparation
+    of a controlled smoke-to-implementation correction after actual startup-stop, with renewed A/B/C and truthful
+    cross-version B0/B1 pilot attempt2. This is not an identical source-preserving infrastructure retry. Four mechanical
+    fingerprints only; hardcaps, actual max2 attempts, all numeric model training and evaluation science remain
+    unchanged. Actual user subsequently instructed: Start it now on gpu 2 and 3, after explanation of exhausted
+    startup attempts. Independent researcher confirms one additional B0/B1 pilot attempt3 and unchanged campaign,
+    reviewed per-dispatch guard repair, renewedA/B/C, samehardcaps. Necessary clean-source commit/push authority
+    supersedes prior operational closure only. OldD remains historical unchanged; nextfinalization staysuncommitted.
+    Actual latest user answer: Use gpu 3 instead. GPU3 only; do not signal either Go2W process; same cumulative
+    per-device/global caps. Sixth fingerprint is mechanical only, no extra scientific cells or attempts. I explicitly
+    authorize reopening the previous operational closure, repairing the monitoring defect, and one additional B0
+    seed-33 technical pilot start (attempt 4). Repair guard with captured-trace CPU regression and genuineviolation
+    checks; resume pool2/3 only after independent repair/protocol approval and clean-source commit/push. Same scientific
+    scope and hardcaps; do not signal Go2W.'
+  proposed_reservations: 'ASSUMPTION upper bounds for a five-configuration design: four common-orientation factorial
+    cells plus a separately matched B0 reference, two fresh seeds, twenty thousand updates per full cell, one one-thousand-update
+    pilot per configuration reusing seed 33, at most one identical infrastructure retry. These counters are design
+    reservations, not execution approval or extra GPU authority. The 420000-iteration counter conservatively charges
+    smoke for both seeds under the generic reservation formula although only seed 33 is planned for pilots. The
+    200000 configured-episode counter covers the explicit all-phase/all-attempt ledger in proposal.yaml; neither
+    counter replaces the carried GPU-hour hard cap. Actual commands, population and cost must pass C. Conditional
+    C/D neural extensions are not included in this initial execution reservation.'
+  exclusions:
+  - No model implementation, model inference, training, collection, timing, simulator rendering or GPU jobs during
+    the initial diagnosis/design stage.
+  - No reuse of historical tests or training seeds as independent confirmatory evidence.
+  - No B3 acceleration training; preserve the established fixed-step reparameterization equivalence.
+  - No changed original Gate D decision, historical source records, tags, predictions or artifacts.
+  - No Go2W experiment, policy retraining, analytical contact solver, Transformer, Neural ODE or learned mass matrix
+    in the initial comparison.
+  - No merges, rebases, force pushes, branch/tag deletion, historical evidence deletion or unlimited retries.
+  - Finalization remains uncommitted; no production promotion without an actual D decision.
+  resource_amendment:
+    kind: user_authorized_device_reassignment_only
+    original_workflow: workflow.v1.yaml
+    original_physical_comparison_GPU_hours: 9.7347368975
+    original_physical_prior_device_GPU_hours:
+      '0': 0.15472222222222223
+      '1': 0.12333333333333334
+      '2': 4.696403564166667
+      '3': 4.760277777777778
+    carried_current_comparison_GPU_hours_per_device:
+      '0': 0.06777777777777778
+      '1': 0.059444444444444446
+    carried_current_comparison_GPU_hours_per_phase:
+      collection: 0.04
+      collection-attempt2: 0.08722222222222223
+    carry_evidence: logs/queue/rwm-discrete-flow/pool_reassignment_evidence.json
+    carry_evidence_sha256: c09079cce3356422f3ee1db912b94d38982101273354e37231e944f12f82964f
+    maximum_scientific_followups: 0
+    mechanical_reservation_explanation: 'Four mechanically reserved protocol/implementation pairs, not four scientific
+      campaigns. Controlled startup correction: B0/B1 pilot attempt2 across versions; other three pilots attempt1;
+      no extra valid pilots, final training cells, epochs, seeds, scientific followups or GPU-hour authority. Current-pool
+      failed14s/device remain charged in existing recursive queue ledger; initial carried prior/fixed7.069020440138889h
+      shares remain unchanged.'
+  startup_correction:
+    independent_scope_assessment: logs/queue/rwm-discrete-flow/startup-heartbeat-scope-assessment.json
+    failed_source: 58f3507e15b615f0612700d2f741af817a8f638e
+    failed_protocol: p-27297613cb0bba599e5cc7c3
+    failure_evidence: logs/queue/rwm-discrete-flow/startup_heartbeat_failure.json
+    allowed_preparation: Correct inactive-owned-context admission only, explicit changed-source technical restart
+      metadata/selection and fresh queue namespace; preserve ordinary strict identical-retry checks. Actual A/B/C
+      required before relaunch.
+    max_actual_attempts_per_cell_across_versions: 2
+    no_automatic_retry: true
+    scientific_progress_in_failed_pilots: Not evidenced; do not claim proven zero optimizer steps.
+    no_future_attempt_after_this_replacement: true
+  user_restart:
+    actual_user_instruction: Start it now on gpu 2 and 3
+    context: Reply to explicit explanation that startup monitor fix and another technical attempt are required.
+    independent_researcher_assessment: Permits one additional B0/B1 startup attempt3, per-dispatch monitor checks
+      retaining150ms; renewedA/B/C before dispatch; original scientific scope/hardcaps unchanged. Necessary comparison-branch
+      clean-source commits/pushes include byte-preserved historical D provenance, not cleanup or promotion. NextD
+      staysuncommitted.
+    prior_D_receipt: r-fce502e2929dff7c0ce26dcc
+    prior_D_decision: d-ced95070c5f3284734fbd3b6
+    prior_executed_source: 66f20e34814aa8aa284deb4f21664b70cc3014ae
+    remaining_GPU_hours: 14.12915199138889
+    pool:
+    - 2
+    - 3
+    new_valid_scientific_cells: 0
+    additional_actual_starts_allowed:
+      B0-seed33-smoke: 1
+      B1-seed33-smoke: 1
+    maximum_ordinary_attempts: 2
+    maximum_exceptional_attempts: 3
+    mechanical_fingerprints: 5
+    mechanical_reservation_explanation: Four prior420000 training pairs plus new630000=2310000; five200000 evaluation
+      pairs=1000000. No new scientific cells or GPUhours; actualattempt3 ONLY B0/B1pilot. Otherpilots/fullruns firstattempt,
+      noautomaticretries.
+  user_gpu3_only:
+    actual_user_instruction: Use gpu 3 instead
+    original_compute_pool:
+    - 2
+    - 3
+    compute_pool:
+    - 3
+    original_hours_per_gpu: 7.069020440138889
+    hours_per_gpu: 7.239722222222222
+    physical_device_limit_hours: 12.0
+    global_limit_hours: 24.0
+    closed_GPU2_seconds_carried: 16
+    GPU3_seconds_remaining_in_queue_ledger: 16
+    actual_remaining_GPU3_hours: 7.235277777777778
+    actual_remaining_global_GPU_hours: 14.129151991388888
+    foreign_signals: 0
+    science_change: false
+    forecast_policy: Retain five-hour evaluation reserve; full ten-cell matrix only if fresh valid-pilot measured
+      forecast fits all hardcaps. Otherwise stop before any full cell.
+  user_attempt4_repair:
+    actual_user_instruction: I explicitly authorize reopening the previous operational closure, repairing the monitoring
+      defect, and one additional B0 seed-33 technical pilot start (attempt 4).
+    pool:
+    - 2
+    - 3
+    maximum_ordinary_attempts: 2
+    B0_seed33_pilot_max_attempt: 4
+    B1_seed33_pilot_max_attempt: 3
+    other_pilots_and_full_initial_attempt: 1
+    new_scientific_cells: 0
+    prior_D_decision: d-16c2be1bedf4d38b89b023cc
+    prior_D_receipt: r-c90cafd1d27f7e6299708734
+    source_before_repair: 835e4d43f51e90334c5e4c492d1f0a3c9874b359
+    literal_user_request: Fix the GPU telemetry guard and resume the RWM campaign unattended on GPU 2,3, both are
+      now available.
+    permissions: Necessary comparison-branch reviewed source commits/pushes explicitly authorized; no foreign Go2W
+      signals, merges or history rewrite. Preserve prior D2 bytes and all evidence. NextD/finalization uncommitted.
+    mechanical_reservation: Six previouspairs2940000+new840000=3780000training; seven200000=1400000eval; maxfollowups6.
+      No extra scientific cells/seeds/updates/evalunits actually executed or GPUhours.
+    budget: Original12GPUh per physical device/24total cumulative, unchanged5GPUh evaluationreserve. GPU2closed16s
+      moved fromcarriedprior backto SAMErecursiveledger; countedonce.

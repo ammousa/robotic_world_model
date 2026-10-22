@@ -1,0 +1,250 @@
+schema_version: 1
+group: rwm-discrete-flow
+hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+variants:
+  B0:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - B0
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  B1:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - B1
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  B2:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - B2
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  D1:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - D1
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+  E3_direct_velocity:
+    task: Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
+    eval_task: Isaac-Velocity-Flat-Anymal-D-Play-v0
+    overrides:
+    - --world_model_dataset
+    - logs/world_model_datasets/rwm-discrete-flow
+    - --world_model_variant
+    - E3_direct_velocity
+    - --world_model_policy
+    - logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
+    eval_overrides: []
+algorithm_repository: ../rsl_rl_rwm-agent-rwm-discrete-flow
+algorithm_commit: 928bc58ec2c5866a42eb668ae52fced92e97124f
+resolved_differences:
+  B0: Unchanged original 45-coordinate residual model, separate external reference.
+  B1: Unchanged 42-output residual velocity/independent residual joints, reconstructed orientation.
+  B2: Unchanged 30-output residual velocity/endpoint-integrated joints, reconstructed orientation.
+  D1: 42-output direct next velocity/independent residual joints, reconstructed orientation; combines existing head
+    skip removal with existing independent-joint output structure only.
+  E3_direct_velocity: Unchanged 30-output direct next velocity/endpoint-integrated joints, reconstructed orientation.
+verification:
+  CPU_regression_suite:
+    command: python -m pytest tests/test_research_*.py -q
+    passed: 295
+    warning: Existing comparison-template matplotlib open-figure warning. Initial new replay fixture lacked protocol_id
+      and existing publisher fixture lacked newly required explicit pilot_seed; fixtures repaired without weakening
+      assertions.
+    optimizer_steps: 0
+  targeted_behavior_suite:
+    passed: 20
+    new_checks: D1 reconstruction/gradient and eight-step backpropagation; partial resets/checkpoint roundtrip;
+      every semantic seeded baseline tensor; exact direct/residual velocity skip; 16 full-45 loss/feedback noise
+      draws across all five variants.
+  historical_checkpoint_compatibility:
+    file: logs/queue/rwm-discrete-flow/implementation_compatibility.json
+    sha256: 3fef12ccb26ac338ff9f1674203f837e4149f00d0e9ba4b993e8c90325f4e846
+    checkpoints: 16
+    comparison: Bitwise matching three-step outputs against original algorithm module for all selected/final checkpoint
+      roles.
+  hooks: Applicable changed-file pre-commit hooks passed independently inside both repositories. Initial cross-repository
+    hook invocation failed on outside-repository paths; corrected invocations passed.
+  native_deployment: D1 load_model metadata/state_dict round trip and frozen policy [2,12] forward finite; external
+    state shape [2,45]. No separate TorchScript/ONNX recurrent dynamics exporter exists; no claim of one.
+training_and_evaluation: Historical CPU implementation verification preceded the sealed dataset and two stopped
+  technical pilots under source58f3507. No full training/evaluation has launched. Current repair is CPU verified
+  only; no new GPU dispatch. Empty failed pilot logs do not establish a proven optimizer-step count.
+preserved_decision_rules:
+- Retain both failure-aware cap-ten and finite-pair views with explicit common-support denominators.
+- Enforce original per-seed constraints, no increase in model-invalid or numerical failures, and inconclusive empty-support
+  or zero-baseline cases.
+- No aggregate confidence interval or population significance claim with two training seeds.
+- Historical decision remains rejected; D1 is sole promotion candidate after new evaluation.
+campaign_tooling:
+  changes:
+  - Inherited train/validation byte-preserving assembly with approved parent SHA/file/physical metadata/resolved-mechanics
+    checks; only fresh held-out partitions are collected.
+  - Fixed equal-share new allocation derived from carried total/per-device prior charges, using existing queue ledger/process-group
+    timeout and campaign lock. No second mutable accounting state.
+  - Replace hardcoded old pilot/render seed with declared protocol pilot and test-ID simulator seed in generation
+    and publication verification.
+  - Accept approved proposed seed values at the launch boundary when the older allowed_training_seed_values key
+    is absent; no core-model compatibility logic.
+  - Scoring/shadow-scoring job names include unique training directory identity; shared queue rejects duplicates
+    before events, output creation or child launch.
+  budget_result:
+    remaining_total_GPU_hours: 14.2652631025
+    new_hard_hours_each_device: 7.13263155125
+    pool:
+    - 0
+    - 1
+    charged_prior_total: 9.7347368975
+  CPU_verification: 295 tests pass, including full80-cell factorial selected/final scoring name uniqueness and duplicate-name
+    pre-dispatch rejection, plus byte reuse/mechanics/tamper, carried-budget/timeouts, fresh replay seeds and publication
+    boundaries.
+  protocol_file: research/rwm-discrete-flow/protocol.yaml
+  scope: Engineering realization of the A-approved design; no new model, metric threshold, test tuning or follow-up.
+  review_history: Previous renewed B rejected duplicate scoring identities under i-88f814043ecf68940db02536; actual
+    rejection receipt retained. Repair changes no numerical/scientific settings and consumes no C reservation before
+    first approval.
+  training_admission:
+    scope: Optional training/pilot-only guard; default queue and ALL evaluation/rendering/timing unchanged. No model/optimizer/data/loss/seed/metric
+      changes.
+    source:
+    - src/research_workflow/gpu_admission.py
+    - scripts/research_runs.py
+    - src/world_modeling/campaign.py
+    runtime: Read-only NVML API. Initial>=10s buffered zero SM/memory; exact identity/UUID/primary command/context-memory
+      binding; 50ms requested observation, actual200ms driver sample period. Supported process no-events remain
+      absent. Max350ms sensor gap, max600ms sample age, max150ms observed poll gap; stale/error/unknown/nonzero/memory-growth
+      stops only owned identity-matched process groups. Raw trace retained compressed. Positive-control identities/sensors
+      validated continuously.
+    CPU_trace:
+      passed: true
+      observations: 1196
+      elapsed_seconds: 60.015227457974106
+      trace_sha256: 6e969c9374c6e1a90e07c6b37d9136091aad2bac7a4f4899bf6fac517319f421
+      proposal_sha256: 19f84c2e3a12a18ccd7ad86f14a905abb7f17bee14c62193affd1333ea0808b4
+      GPU_jobs: 0
+      notes: Read-only NVML. Missing process events retained as absent, never zero-filled; no foreign signals; 50ms
+        requested poll is not sensor resolution.
+    verification: Synthetic adversarial activity/unknown identity/PID reuse/memory growth/error/gap/control/staleness
+      plus real CPU-only owned-process stop. No foreign signal or GPU context created.
+    historical_budget_result: Existing budget_result is original first-pool historical verification only. Current
+      resource authority and closed-ledger carry are protocol.v2.yaml plus current protocol, unchanged by this guard.
+    CPU_verification:
+      regression_tests_passed: 324
+      warning: One existing matplotlib open-figure warning in comparison template.
+      hooks: All applicable changed-file hooks pass.
+      failures_preserved: An initial literal pytest glob invocation exited4 without tests; corrected shell-expanded
+        complete suite passed. Initial formatting/complexity hooks required only extraction/formatting, then passed.
+      control_retirement: A bound process that has removed all pool contexts needs no exemption/positive control;
+        all new identities still rejected. Preserve its final actually observed zero event without fabricating absent
+        values.
+    review_history:
+      rejected_implementation: i-949fac1610d746de1c443888
+      actual_rejection_receipt: r-9abea4ff02c07c158c346b98
+      defect: NOT_FOUND/empty per-device process events could pass while owned GPU busy despite healthy controls
+        elsewhere. Exact rejected source preserved in queue scratch and to be attached as evidence.
+      repair: Require rc0/nonempty fresh per-device owned heartbeat under owned context or aggregate activity; absent
+        events only inactive covered device. Add missing6/empty0/stale/missingowned-row regressions. No GPU dispatch
+        or scientific change.
+    transient_activity_review:
+      rejected_implementation: i-238eb716e0335fe5aeaf17f1
+      actual_receipt: r-8d79a406bf9de45a77bace9a
+      defect: An activity burst followed by zero escaped endpoint-only aggregate checking.
+      repair: Require actual fresh owned heartbeat for EACH newly covered active interval of both aggregate kinds,
+        including revised active readings at prior timestamps. Do not re-trigger unchanged already attributed historical
+        activity. Add exact burst-then-zero and historical-control regressions. Preserve original missing-busy-attribution
+        tests.
+      tests: 324 passed, one pre-existing figure warning. Initial full transient suite exposed that a revised previously
+        observed sample also requires attribution; preserved failure and repaired without weakening assertion.
+  startup_correction:
+    scope: Controlled smoke-to-implementation technical source change only; all scientific/numerical model source,
+      heads, losses, optimizer, data, seeds, selection and metrics unchanged. No ordinary identical retry.
+    failed_executed_source: 58f3507e15b615f0612700d2f741af817a8f638e
+    actual_A_receipt: r-12ccd5af5485fedb24de8127
+    source:
+    - src/research_workflow/gpu_admission.py
+    - src/research_workflow/verification.py
+    - scripts/research_runs.py
+    - src/world_modeling/campaign.py
+    guard: Owned inactive CUDA context may have no process event only when every newly covered interval and current
+      sample is covered/fresh/zero. Active and revised-active samples still need actual owned attribution. No changes
+      to foreign identity/memory, positive-control, gap/age/error checks. Evaluation/render/timing remain default
+      context-free.
+    lineage: B0/B1 pilots actual attempt2 under new source and protocol, settings_identical false; actual closed
+      SHA-bound original queue/audit/log evidence without invented run provenance. Other three pilots and ten full
+      cells remain attempt1. Ordinary retry verification retained unchanged. No automatic retries.
+    evidence_validation: Reject non-smoke, wrong attempt/seed/cell/task/hypothesis, same old commit, scientific
+      contract difference, changed closed evidence, any old run output, or current numerical source differing from
+      original Git blobs. Numerical source checks cached before admission loop.
+    forecast_and_selection: Fresh smoke-startup-correction queue, fresh training-admission-startup-correction trace
+      and controller log. All recursive root charges include both old14second allocations; throughput only five
+      new valid pilots. First valid allowed replacement; all five pilots must pass before budget-checked auto-full.
+    verification:
+      full_repository_tests: 339
+      warning: One existing comparison-template matplotlib open-figure warning.
+      command: python -m pytest tests/test_research_*.py -q
+      log: /tmp/rwm-discrete-flow/startup-correction-regression.final.log
+      hooks: All applicable source/test/contract hooks passed after automatic formatting.
+      earlier_failures: Initial new CPU fixture lacked evaluation.primary_metric; fixture corrected. Formatting
+        hooks changed formatting only; failures preserved in scratch.
+      proof: logs/queue/rwm-discrete-flow/startup_correction.verification.json
+      GPU_jobs_for_repair: 0
+    cost:
+      failed_start_seconds_per_device: 14
+      failed_start_GPU_hours_total: 0.007777777777777778
+      remaining_actual_GPU_hours: 14.1302631025
+      fixed_new_hours_per_device_unchanged: 7.069020440138889
+      hard_total_GPU_hours: 24
+      hard_each_physical_GPU_hours: 12
+      pool:
+      - 2
+      - 3
+    history: Prior rejection receipts and failure artifact remain immutable. workflow.v3/protocol.v3/implementation.v2
+      preserve exact executed58f3507 bytes. New B/C required before launch.
+  user_restart:
+    actual_user_instruction: Start it now on gpu 2 and 3
+    historical_D: Archived byte-for-byte decision.v1.yaml and unchanged receipt; renewed execution commits historical
+      provenance only, no finalization cleanup or promotion.
+    scope: Only interleaved guard observation around each child launch; preserve150ms/all checks/no observation
+      reset. Constructor/verifier allow only declared B0/B1 pilot attempt3 with both prior SHA-bound closed ledgers/audits
+      and new reviewed source; ordinary retry max2 retained.
+    numerical_science: Unchanged original heads/data/losses/optimizer/seeds/selection/metrics and clean algorithm928bc58.
+    CPU_verification:
+      tests_passed: 346
+      warning: One existing comparison-template figure warning.
+      tests: Two CPU-only delayed-spawn regressions, third-attempt full lineage/user authority/tamper and ordinary-retry
+        enforcement, all existing tests.
+      initial_failures: Old exact error-message regex updated for declared second-or-third attempt; formatting and
+        queue-complexity hooks required extracting unchanged queued-source check. No scientific change.
+      proof: logs/queue/rwm-discrete-flow/user_restart.verification.json
+      GPU_jobs: 0
+    budget: Previous16s/device remain charged, actual14.1291519914GPUh headroom; fixedshares and hardcaps unchanged.
+      New mechanical630000training/200000eval reservation only, no extra scientificcells.
+    future_attempt_limits: B0/B1 pilot attempt3 only; other3pilots and10full firstattempt, no automaticretry. Freshqueue/trace/controller.
+gpu3_only_resource_boundary:
+  change: Explicit literal-user-authorized [2,3] to [3] infrastructure normalization only; numerical science still
+    compared against all original failed versions.
+  protocol_version: 6
+  tests: 352 research tests passed in27.50s, one existing matplotlib open-figure warning; changed-file pre-commit
+    passed after automatic formatting. Six meaningful resource-boundary tests; no GPU dispatch.

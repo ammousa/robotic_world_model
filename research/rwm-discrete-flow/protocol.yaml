@@ -2,7 +2,7 @@ schema_version: 1
 domain: world_model
 group: rwm-discrete-flow
 hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
-protocol_version: 6
+protocol_version: 7
 project: rwm-explore
 variants:
   B0:
@@ -67,6 +67,7 @@ training_budget:
   iterations: 20000
   num_envs: 256
 compute_pool:
+- 2
 - 3
 baseline_variants:
 - B0
@@ -317,7 +318,7 @@ smoke_gate:
     E3_direct_velocity: logs/rsl_rl/anymal_d_world_model
     D1: logs/rsl_rl/anymal_d_world_model
 retry_policy:
-  max_attempts: 3
+  max_attempts: 4
   allowed_reasons:
   - vm_died
   - infrastructure_interruption
@@ -350,7 +351,7 @@ world_model:
   pilot_seed: 33
   max_job_seconds: 7200
   max_total_GPU_hours: 24.0
-  max_GPU_hours_per_device: 7.239722222222222
+  max_GPU_hours_per_device: 7.069020440138889
   evaluation_reserve_GPU_hours: 5.0
   collection:
     test_id:
@@ -814,98 +815,91 @@ world_model:
     maximum_sample_gap_seconds: 0.35
     maximum_sample_age_seconds: 0.6
     quiet_window_seconds: 10
+    maximum_quiet_wait_seconds: 60
     devices:
+      '2':
+        uuid: GPU-ff404dc7-72ae-8f16-37d9-be9309b71b8f
+        passive_processes:
+          '2076766':
+            identity:
+              pid: 2076766
+              start_ticks: 62014092
+              pgid: 2076766
+              uid: 2679405237
+              cmdline:
+              - python
+              - src/ilab/scripts/rsl_rl/replay.py
+              - --recording
+              - outputs/replays/gpu3_depth_predictive_model4500_60s
+              - --device
+              - cuda:3
+              - --viz
+              - kit
+              - --kit_args
+              - --/renderer/multiGpu/enabled=false --/renderer/activeGpu=0
+              cwd: /home/sa_117912745486381118864/0-WORK/isaac_wm
+            maximum_memory_bytes: 117440512
       '3':
         uuid: GPU-bc4ac76d-7cf6-1495-d32d-e5da8e00960e
         passive_processes:
-          '2018122':
-            identity: &id001
-              pid: 2018122
-              start_ticks: 60660897
-              pgid: 2018122
+          '2076766':
+            identity:
+              pid: 2076766
+              start_ticks: 62014092
+              pgid: 2076766
               uid: 2679405237
               cmdline:
               - python
-              - src/ilab/scripts/rsl_rl/train.py
-              - --task
-              - go2w-train-dev-rough-deploy
-              - --finetune_checkpoint
-              - reports/go2w_exp4b_deployment_20260924/model_4999.pt
+              - src/ilab/scripts/rsl_rl/replay.py
+              - --recording
+              - outputs/replays/gpu3_depth_predictive_model4500_60s
               - --device
-              - cuda:2
-              - --headless
+              - cuda:3
               - --viz
-              - none
-              - --num_envs
-              - '4096'
-              - --max_iterations
-              - '10000'
-              - --seed
-              - '1'
-              - --logger
-              - wandb
-              - --run_name
-              - go2w-deploy-finetune
-              - --note
-              - go2w_exp4b_deployment_20260924-deploy-finetune
-              - env.actuator_delay_start=4
-              - env.actuator_delay_end=4
+              - kit
+              - --kit_args
+              - --/renderer/multiGpu/enabled=false --/renderer/activeGpu=0
               cwd: /home/sa_117912745486381118864/0-WORK/isaac_wm
-            maximum_memory_bytes: 195035136
-          '2018235':
-            identity: &id002
-              pid: 2018235
-              start_ticks: 60661380
-              pgid: 2018235
-              uid: 2679405237
-              cmdline:
-              - python
-              - src/ilab/scripts/rsl_rl/train.py
-              - --task
-              - go2w-train-dev-rough-deploy
-              - --device
-              - cuda:1
-              - --headless
-              - --viz
-              - none
-              - --num_envs
-              - '4096'
-              - --max_iterations
-              - '20000'
-              - --seed
-              - '1'
-              - --logger
-              - wandb
-              - --run_name
-              - go2w-deploy
-              - --note
-              - go2w_exp4b-deploy
-              - env.actuator_delay_start=4
-              - env.actuator_delay_end=4
-              cwd: /home/sa_117912745486381118864/0-WORK/isaac_wm
-            maximum_memory_bytes: 195035136
+            maximum_memory_bytes: 2520776704
     positive_controls:
-      '2':
-        uuid: GPU-ff404dc7-72ae-8f16-37d9-be9309b71b8f
-        identity: *id001
-      '1':
-        uuid: GPU-94ab9c1f-8044-f886-8dcb-d350804d34ad
-        identity: *id002
-    maximum_quiet_wait_seconds: 60
+      '0':
+        uuid: GPU-9f742fa1-af41-9f99-455d-4b5d482060b3
+        identity:
+          pid: 2076766
+          start_ticks: 62014092
+          pgid: 2076766
+          uid: 2679405237
+          cmdline:
+          - python
+          - src/ilab/scripts/rsl_rl/replay.py
+          - --recording
+          - outputs/replays/gpu3_depth_predictive_model4500_60s
+          - --device
+          - cuda:3
+          - --viz
+          - kit
+          - --kit_args
+          - --/renderer/multiGpu/enabled=false --/renderer/activeGpu=0
+          cwd: /home/sa_117912745486381118864/0-WORK/isaac_wm
     evidence:
-      current_binding_proposal: logs/queue/rwm-discrete-flow/gpu3-only.context-bindings.json
-      current_binding_proposal_sha256: bcf1fe685343b2690bdb619cb98d62f5d08af4acf4d21ecd86ea625da50917a5
-      quiet_evidence: Fresh twelve-second read-only GPU3 proof required before Gate C.
-      historical_trace: Preserve prior full-pool traces; they are not current GPU3 readiness.
-    busy_device_attribution: Inspect every newly covered aggregate interval of each kind and every revised active
-      reading, including bursts followed by zero. Unchanged already attributed owned history is excluded. An owned
-      context with no process event is admitted only while all newly covered samples and current aggregate values
-      are valid, fresh and zero. Any active or revised-active interval requires rc0/nonempty per-device process
-      telemetry and an actually observed current/recently retired owned-process heartbeat covering EACH required
-      timestamp within350ms and wall age600ms. Healthy primary controls cannot substitute. Missing events remain
-      absent, never numeric zero. Foreign, identity, memory, sample-gap, age and error rejection remain unchanged.
-  pilot_queue_directory: smoke-gpu3-only
-  pilot_trace_filename: training-admission-gpu3-only.jsonl.gz
+      kind: exact_current_idle_replay_training_only_continuously_guarded
+      pid: 2076766
+      declared_compute_device: 3
+      renderer_device: 0
+      not_initialization_only: true
+      future_compute_possible: UIplayback/seek mayresume3; anyobservedforeignactivity stopsownedRWM, neverforeignreplay.
+        FinalB0attemptcanbeconsumedbythatstop.
+      controls: Exactfullidentity/UUID/memory117440512on2/2520776704on3; actualsamePIDrenderer0positivetelemetry;
+        no missingvalueinvention;150/350/600ms unchanged.
+      strict_other_phases: Evaluation/render/timing retain stockzero-foreign-context admission; never inherittrainingexemption.
+      independent_scope: logs/queue/rwm-discrete-flow/attempt4-idle-replay-independent-scope.json
+      quiet_proof: logs/queue/rwm-discrete-flow/attempt4-current-foreign.proposal.json
+      quiet_proof_sha256: d7e75fea13c0663cf7cc0cd5a5291c4f5cf76c078a1026f9121d64d9dcdf4c4f
+      source_role_audit: logs/queue/rwm-discrete-flow/attempt4-replay-source-audit.json
+      source_role_audit_sha256: 63d5f7ec97017afc411cde908d6cc9a5a569cedcb9f91b50acf390d2fa418a27
+      fresh_reviewed_source_proof: RequiredbeforeC/dispatch; first12sproofpreservedaspreparatoryonly.
+  pilot_queue_directory: smoke-timestamp-repair
+  pilot_trace_filename: training-admission-timestamp-repair.jsonl.gz
   startup_correction:
     kind: controlled_smoke_to_implement_source_change
     original_protocol: protocol.v3.yaml
@@ -984,7 +978,7 @@ world_model:
         evaluation_units_sum: 188124
         evaluation_units_ceiling: 200000
         additional_actual_scientific_cells: 0
-    user_gpu3_only:
+    historical_user_gpu3_only:
       actual_user_instruction: Use gpu 3 instead
       original_compute_pool:
       - 2
@@ -1003,10 +997,32 @@ world_model:
       science_change: false
       forecast_policy: Retain five-hour evaluation reserve; full ten-cell matrix only if fresh valid-pilot measured
         forecast fits all hardcaps. Otherwise stop before any full cell.
+    user_attempt4_repair:
+      actual_user_instruction: I explicitly authorize reopening the previous operational closure, repairing the
+        monitoring defect, and one additional B0 seed-33 technical pilot start (attempt 4).
+      pool:
+      - 2
+      - 3
+      maximum_ordinary_attempts: 2
+      B0_seed33_pilot_max_attempt: 4
+      B1_seed33_pilot_max_attempt: 3
+      other_pilots_and_full_initial_attempt: 1
+      new_scientific_cells: 0
+      prior_D_decision: d-16c2be1bedf4d38b89b023cc
+      prior_D_receipt: r-c90cafd1d27f7e6299708734
+      source_before_repair: 835e4d43f51e90334c5e4c492d1f0a3c9874b359
+      literal_user_request: Fix the GPU telemetry guard and resume the RWM campaign unattended on GPU 2,3, both
+        are now available.
+      permissions: Necessary comparison-branch reviewed source commits/pushes explicitly authorized; no foreign
+        Go2W signals, merges or history rewrite. Preserve prior D2 bytes and all evidence. NextD/finalization uncommitted.
+      mechanical_reservation: Six previouspairs2940000+new840000=3780000training; seven200000=1400000eval; maxfollowups6.
+        No extra scientific cells/seeds/updates/evalunits actually executed or GPUhours.
+      budget: Original12GPUh per physical device/24total cumulative, unchanged5GPUh evaluationreserve. GPU2closed16s
+        moved fromcarriedprior backto SAMErecursiveledger; countedonce.
   controlled_startup_replacements:
     B0-seed33:
       kind: changed_source_pretraining_startup_replacement
-      attempt: 3
+      attempt: 4
       original_attempt: 1
       original_job_name: B0-seed33-smoke
       original_protocol_id: p-27297613cb0bba599e5cc7c3
@@ -1030,6 +1046,20 @@ world_model:
         failure_audit: logs/queue/rwm-discrete-flow/observation_gap_failure.json
         failure_audit_sha256: 0215881a89f30fd0f8dbc3268bcc2bae9c88bdbf0e2b462b8d96f1000eea261c
       user_authorized_additional_start: true
+      partial_attempt_record:
+        attempt: 3
+        job_name: B0-seed33-attempt3-smoke
+        source_commit: 835e4d43f51e90334c5e4c492d1f0a3c9874b359
+        protocol_id: p-52e780722acd810fb0faff20
+        closed_queue: logs/queue/rwm-discrete-flow/smoke-gpu3-only/events.jsonl
+        closed_queue_sha256: 7d9e05fd4bf293df79b6bbc06cf23a10d33489890ba175289e6697c768bebf98
+        failure_audit: logs/queue/rwm-discrete-flow/gpu3-only.failure.json
+        failure_audit_sha256: 248b92979f68041c029dd1eca6779f3547f713a7797bad11a580ad63fd2aa11d
+        partial_provenance: logs/rsl_rl/anymal_d_world_model/2026-10-22_11-23-52_B0-seed33-attempt3-smoke/research_provenance.json
+        partial_provenance_sha256: 93951b7f6368a2ef5ae46b4b6d675e81ca930ab5080701dc1bf019c6263cd962
+        partial_stream: logs/rsl_rl/anymal_d_world_model/2026-10-22_11-23-52_B0-seed33-attempt3-smoke/locomotion_metrics.jsonl
+        partial_stream_sha256: d6b7a28c9dbe057c40f1f83919846447d88f1c4f78accb06f60bc4a68d4948a4
+      user_authorized_fourth_start: true
     B1-seed33:
       kind: changed_source_pretraining_startup_replacement
       attempt: 3

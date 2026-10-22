@@ -248,3 +248,41 @@ gpu3_only_resource_boundary:
   protocol_version: 6
   tests: 352 research tests passed in27.50s, one existing matplotlib open-figure warning; changed-file pre-commit
     passed after automatic formatting. Six meaningful resource-boundary tests; no GPU dispatch.
+timestamp_guard_repair:
+  scope: Technical monitoring/provenance only; no model, data, policy, sampling, loss, state reconstruction, seeds
+    or evaluation changes.
+  retiming: Unique same-value match within2microseconds against already validated samples, preserving original timestamp
+    anchor; ambiguous matches rejected; raw telemetry unchanged.
+  history: Verified actual owned events support ONLY unchanged unique anchored<=2microsecond aliases. No historical
+    fallback for changed utilization or out-of-bound/new active timestamps. All such information must match fresh
+    owned telemetry; currentactivity freshness separate. Cache boundfullidentity; failed checks cannot add records.
+  thresholds: Unchanged50ms polling,150ms maxpollgap,350ms attribution/samplegap,600ms currentage. No guarddisable/blanketsharing.
+  captured_trace: tests/research_gpu_admission_trace.jsonl.gz byte-exact rawfailuretrace SHA dcdb899386f6be825f1befcfc3e1118345784ea91a9daa992bee83b2d7bf28d8;
+    synthetic /proc identities explicitly labeled in replayfixture.
+  verification: 376 full research tests passed36.65s, one existing matplotlibwarning. Narrowed repair:47 targeted
+    trace/admission checks passed5.24s. Captured full272 raw snapshots pass; changed historical99/same timestamp,100000us+99,3us+unchanged18
+    allrejectwithcachepresent. Historicalcacheonlysupportsunchanged<=2us aliases. Finalchangedfilehooks passed after
+    metadataupdate.
+  first_test_failure: New constructor test exposed separate attempt whitelist; narrowly amended(2,3) to(2,3,4),
+    fulltraining andordinaryretry caps remainunchanged. Initialhooksformatted source/tests; finalhooks passed.
+  attempt_boundary: B0seed33 fourth start only, exact explicit userquote, allthree closedpriorattempts, originalsource/scienceSHA
+    binding and actualpartialthirdprovenance/finite stream. B1third remainsunused; full starts1.
+  independent_initial_review: 'B rejected initial i-2394c6a43cd884d84ab5506a, receipt r-88df3768bcea085619ec2e98:
+    broad historicalfallback accepted+100000us retiming andSM99. That fallback removed; changedvalue/out-of-bound
+    oldreadings nownegative tests. NoGPUattempt consumed.'
+  current_admission:
+    kind: exact_current_idle_replay_training_only_continuously_guarded
+    pid: 2076766
+    declared_compute_device: 3
+    renderer_device: 0
+    not_initialization_only: true
+    future_compute_possible: UIplayback/seek mayresume3; anyobservedforeignactivity stopsownedRWM, neverforeignreplay.
+      FinalB0attemptcanbeconsumedbythatstop.
+    controls: Exactfullidentity/UUID/memory117440512on2/2520776704on3; actualsamePIDrenderer0positivetelemetry;
+      no missingvalueinvention;150/350/600ms unchanged.
+    strict_other_phases: Evaluation/render/timing retain stockzero-foreign-context admission; never inherittrainingexemption.
+    independent_scope: logs/queue/rwm-discrete-flow/attempt4-idle-replay-independent-scope.json
+    quiet_proof: logs/queue/rwm-discrete-flow/attempt4-current-foreign.proposal.json
+    quiet_proof_sha256: d7e75fea13c0663cf7cc0cd5a5291c4f5cf76c078a1026f9121d64d9dcdf4c4f
+    source_role_audit: logs/queue/rwm-discrete-flow/attempt4-replay-source-audit.json
+    source_role_audit_sha256: 63d5f7ec97017afc411cde908d6cc9a5a569cedcb9f91b50acf390d2fa418a27

@@ -14,20 +14,21 @@ mandate:
     training_unit: iterations
     max_variants: 5
     max_training_seeds: 2
-    max_attempts: 3
-    max_followups: 5
-    max_total_training_units: 2940000
-    max_total_evaluation_units: 1200000
+    max_attempts: 4
+    max_followups: 6
+    max_total_training_units: 3780000
+    max_total_evaluation_units: 1400000
     compute_pool:
+    - 2
     - 3
     max_GPU_hours_per_device: 12.0
     max_total_GPU_hours: 24.0
-    prior_comparison_GPU_hours: 9.866403564166667
-    remaining_total_GPU_hours: 14.133596435833333
+    prior_comparison_GPU_hours: 9.861959119722222
+    remaining_total_GPU_hours: 14.138040880277778
     prior_device_GPU_hours:
       '0': 0.22250000000000003
       '1': 0.1827777777777778
-      '2': 4.7008480086111115
+      '2': 4.696403564166667
       '3': 4.760277777777778
     proposed_training_seeds:
     - 33
@@ -57,7 +58,11 @@ mandate:
     reviewed per-dispatch guard repair, renewedA/B/C, samehardcaps. Necessary clean-source commit/push authority
     supersedes prior operational closure only. OldD remains historical unchanged; nextfinalization staysuncommitted.
     Actual latest user answer: Use gpu 3 instead. GPU3 only; do not signal either Go2W process; same cumulative
-    per-device/global caps. Sixth fingerprint is mechanical only, no extra scientific cells or attempts.'
+    per-device/global caps. Sixth fingerprint is mechanical only, no extra scientific cells or attempts. I explicitly
+    authorize reopening the previous operational closure, repairing the monitoring defect, and one additional B0
+    seed-33 technical pilot start (attempt 4). Repair guard with captured-trace CPU regression and genuineviolation
+    checks; resume pool2/3 only after independent repair/protocol approval and clean-source commit/push. Same scientific
+    scope and hardcaps; do not signal Go2W.'
   proposed_reservations: 'ASSUMPTION upper bounds for a five-configuration design: four common-orientation factorial
     cells plus a separately matched B0 reference, two fresh seeds, twenty thousand updates per full cell, one one-thousand-update
     pilot per configuration reusing seed 33, at most one identical infrastructure retry. These counters are design
@@ -154,3 +159,41 @@ mandate:
     science_change: false
     forecast_policy: Retain five-hour evaluation reserve; full ten-cell matrix only if fresh valid-pilot measured
       forecast fits all hardcaps. Otherwise stop before any full cell.
+  user_attempt4_repair:
+    actual_user_instruction: I explicitly authorize reopening the previous operational closure, repairing the monitoring
+      defect, and one additional B0 seed-33 technical pilot start (attempt 4).
+    pool:
+    - 2
+    - 3
+    maximum_ordinary_attempts: 2
+    B0_seed33_pilot_max_attempt: 4
+    B1_seed33_pilot_max_attempt: 3
+    other_pilots_and_full_initial_attempt: 1
+    new_scientific_cells: 0
+    prior_D_decision: d-16c2be1bedf4d38b89b023cc
+    prior_D_receipt: r-c90cafd1d27f7e6299708734
+    source_before_repair: 835e4d43f51e90334c5e4c492d1f0a3c9874b359
+    literal_user_request: Fix the GPU telemetry guard and resume the RWM campaign unattended on GPU 2,3, both are
+      now available.
+    permissions: Necessary comparison-branch reviewed source commits/pushes explicitly authorized; no foreign Go2W
+      signals, merges or history rewrite. Preserve prior D2 bytes and all evidence. NextD/finalization uncommitted.
+    mechanical_reservation: Six previouspairs2940000+new840000=3780000training; seven200000=1400000eval; maxfollowups6.
+      No extra scientific cells/seeds/updates/evalunits actually executed or GPUhours.
+    budget: Original12GPUh per physical device/24total cumulative, unchanged5GPUh evaluationreserve. GPU2closed16s
+      moved fromcarriedprior backto SAMErecursiveledger; countedonce.
+    current_idle_replay_admission:
+      kind: exact_current_idle_replay_training_only_continuously_guarded
+      pid: 2076766
+      declared_compute_device: 3
+      renderer_device: 0
+      not_initialization_only: true
+      future_compute_possible: UIplayback/seek mayresume3; anyobservedforeignactivity stopsownedRWM, neverforeignreplay.
+        FinalB0attemptcanbeconsumedbythatstop.
+      controls: Exactfullidentity/UUID/memory117440512on2/2520776704on3; actualsamePIDrenderer0positivetelemetry;
+        no missingvalueinvention;150/350/600ms unchanged.
+      strict_other_phases: Evaluation/render/timing retain stockzero-foreign-context admission; never inherittrainingexemption.
+      independent_scope: logs/queue/rwm-discrete-flow/attempt4-idle-replay-independent-scope.json
+      quiet_proof: logs/queue/rwm-discrete-flow/attempt4-current-foreign.proposal.json
+      quiet_proof_sha256: d7e75fea13c0663cf7cc0cd5a5291c4f5cf76c078a1026f9121d64d9dcdf4c4f
+      source_role_audit: logs/queue/rwm-discrete-flow/attempt4-replay-source-audit.json
+      source_role_audit_sha256: 63d5f7ec97017afc411cde908d6cc9a5a569cedcb9f91b50acf390d2fa418a27

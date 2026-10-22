@@ -368,7 +368,7 @@ def train_job(
         if startup:
             if (
                 protocol.get("domain") != "world_model"
-                or startup.get("attempt") not in (2, 3)
+                or startup.get("attempt") not in (2, 3, 4)
                 or startup.get("original_attempt") != 1
             ):
                 raise ValueError("invalid world-model startup replacement contract")

@@ -71,6 +71,7 @@ datasets
 tests/*
 !tests/test_research_*.py
 !tests/research_contract_examples.yaml
+!tests/research_gpu_admission_trace.jsonl.gz
 
 # Docker history
 .isaac-lab-docker-history

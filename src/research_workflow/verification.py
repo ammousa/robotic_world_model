@@ -370,7 +370,7 @@ def verify_controlled_startup(metadata, fingerprint, *, root=None):
         or metadata.get("attempt") != declared.get("attempt")
         or metadata.get("controlled_startup_replacement") != declared
         or not declared
-        or declared.get("attempt") not in (2, 3)
+        or declared.get("attempt") not in (2, 3, 4)
         or declared.get("original_attempt") != 1
         or declared.get("ordinary_retry") is not False
         or declared.get("settings_identical") is not False
@@ -439,8 +439,10 @@ def verify_controlled_startup(metadata, fingerprint, *, root=None):
             or hashlib.sha256(path.read_bytes()).hexdigest() != digest
         ):
             raise ValueError("startup replacement numerical source changed")
-    if declared["attempt"] == 3:
+    if declared["attempt"] >= 3:
         _verify_additional_startup(metadata, fingerprint, root, declared)
+    if declared["attempt"] == 4:
+        _verify_fourth_startup(metadata, fingerprint, root, declared)
     return {**metadata, "settings_identical": False, "controlled_startup_replacement_validated": True}
 
 
@@ -494,6 +496,81 @@ def _verify_additional_startup(metadata, fingerprint, root, declared):
         raise ValueError("second startup has incompatible failure evidence or run output")
     for entry in audit["files"].values():
         _startup_evidence(root, protocol["group"], entry["path"], entry["sha256"])
+
+
+def _verify_fourth_startup(metadata, fingerprint, root, declared):
+    protocol = metadata["protocol_contract"]
+    authority = protocol["world_model"]["startup_correction"].get("user_attempt4_repair", {})
+    previous = declared.get("partial_attempt_record", {})
+    quote = (
+        "I explicitly authorize reopening the previous operational closure, repairing the monitoring defect, "
+        "and one additional B0 seed-33 technical pilot start (attempt 4)."
+    )
+    if (
+        authority.get("actual_user_instruction") != quote
+        or authority.get("maximum_ordinary_attempts") != 2
+        or authority.get("B0_seed33_pilot_max_attempt") != 4
+        or declared.get("user_authorized_fourth_start") is not True
+        or (metadata.get("variant"), metadata.get("seed"), metadata.get("cell_id")) != ("B0", 33, "B0-seed33")
+        or previous.get("attempt") != 3
+        or fingerprint["commit"] == previous.get("source_commit")
+    ):
+        raise ValueError("fourth startup requires explicit B0 seed33 user authority and new reviewed source")
+    raw = _startup_evidence(root, protocol["group"], previous["closed_queue"], previous["closed_queue_sha256"])
+    events = [json.loads(line) for line in raw.decode().splitlines() if line.strip()]
+    starts = [e for e in events if e.get("event") == "start" and e.get("name") == previous["job_name"]]
+    exits = [e for e in events if e.get("event") == "exit" and e.get("name") == previous["job_name"]]
+    if len(starts) != 1 or len(exits) != 1 or exits[0].get("returncode") != -15 or events[-1]["event"] != "queue_end":
+        raise ValueError("fourth startup requires a closed failed actual third attempt")
+    old = starts[0]["research"]
+    if (
+        old.get("attempt") != 3
+        or previous["job_name"] != "B0-seed33-attempt3-smoke"
+        or old.get("protocol_id") != previous["protocol_id"]
+        or starts[0]["source"].get("commit") != previous["source_commit"]
+        or starts[0]["source"].get("dirty") is not False
+        or _startup_numeric_contract(protocol) != _startup_numeric_contract(old["protocol_contract"])
+    ):
+        raise ValueError("third startup lineage or numerical settings differ")
+    verify_controlled_startup(old, {"commit": previous["source_commit"]}, root=root)
+    audit = json.loads(
+        _startup_evidence(root, protocol["group"], previous["failure_audit"], previous["failure_audit_sha256"])
+    )
+    if (
+        audit.get("source_commit") != previous["source_commit"]
+        or audit.get("exit_codes", {}).get(previous["job_name"]) != -15
+    ):
+        raise ValueError("partial third startup failure audit differs")
+    for entry in audit["files"].values():
+        _partial_startup_file(root, protocol["group"], entry["path"], entry["sha256"])
+    provenance = json.loads(
+        _partial_startup_file(
+            root, protocol["group"], previous["partial_provenance"], previous["partial_provenance_sha256"]
+        )
+    )
+    stream = _partial_startup_file(
+        root, protocol["group"], previous["partial_stream"], previous["partial_stream_sha256"]
+    )
+    if (
+        any(
+            provenance.get(key) != old.get(key)
+            for key in ("cell_id", "variant", "seed", "attempt", "protocol_id", "settings_id")
+        )
+        or provenance.get("runtime_fingerprint", {}).get("commit") != previous["source_commit"]
+        or not any(json.loads(line).get("Checks/finite_model") == 1.0 for line in stream.decode().splitlines())
+    ):
+        raise ValueError("partial third startup provenance or finite progress differs")
+
+
+def _partial_startup_file(root, group, name, digest):
+    path = (root / name).resolve()
+    allowed = [root / "logs/queue" / group, root / "logs/rsl_rl/anymal_d_world_model"]
+    if not any(path.is_relative_to(directory.resolve()) for directory in allowed):
+        raise ValueError("partial startup evidence outside comparison output boundaries")
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != digest:
+        raise ValueError("partial startup evidence changed")
+    return raw
 
 
 def verify_retry(metadata, fingerprint, *, source_only=False):

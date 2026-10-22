@@ -152,6 +152,8 @@ class TrainingAdmission:
         self.trace = trace
         self.previous = None
         self.known_owned = {}
+        self.attributed_samples = {}
+        self.owned_event_history = {}
         if settings["scope"] != "training_and_pilots_only" or set(settings["devices"]) != {str(g) for g in pool}:
             raise ValueError("passive-context admission is restricted to the declared training pool")
         if settings["poll_seconds"] > 0.05 or settings["maximum_sample_gap_seconds"] > 0.35:
@@ -211,6 +213,8 @@ class TrainingAdmission:
                 if not actual:
                     raise AdmissionError("unknown GPU process identity")
                 if actual["pgid"] in live_owned:
+                    if int(raw_pid) in self.known_owned and actual != self.known_owned[int(raw_pid)]:
+                        raise AdmissionError("owned process identity changed")
                     self.known_owned[int(raw_pid)] = actual
                     owned_pids.add(int(raw_pid))
                     continue
@@ -256,6 +260,7 @@ class TrainingAdmission:
             # An absent context event is not assigned a zero utilization. Only the
             # documented supported no-event semantics plus fresh aggregate coverage
             # permit continuing; all raw absences/statuses are retained in the trace.
+        self._remember_validated(snapshot)
 
     def _validate_controls(self, snapshot, wall, max_age):
         cfg = self.settings
@@ -304,12 +309,10 @@ class TrainingAdmission:
     def _validate_owned_heartbeat(self, key, device, owned_pids, wall, max_age, max_gap):
         active_stamps = []
         for kind, samples in device["aggregate"].items():
-            previous = dict(self.previous["devices"][key]["aggregate"][kind]) if self.previous else {}
-            prior = max(previous, default=-1)
-            # A revised active reading is new information even if its timestamp
-            # was seen before; unchanged attributed history does not re-trigger.
             active_stamps.extend(
-                stamp for stamp, value in samples if value > 0 and (stamp > prior or previous.get(stamp) != value)
+                stamp
+                for stamp, value in samples
+                if value > 0 and self._attributed_origin(key, kind, stamp, value) is None
             )
         current_active = any(samples[-1][1] > 0 for samples in device["aggregate"].values())
         if not active_stamps and (not owned_pids or not current_active):
@@ -319,7 +322,6 @@ class TrainingAdmission:
         events = device["events"]
         if device["process_event_status"] != 0 or not events:
             raise AdmissionError("busy device attribution missing")
-        required_stamps = active_stamps or [max(samples[-1][0] for samples in device["aggregate"].values())]
         heartbeats = []
         for event in events:
             pid = event["pid"]
@@ -333,5 +335,75 @@ class TrainingAdmission:
                 continue
             if 0 <= wall - event["stamp"] <= max_age:
                 heartbeats.append(event["stamp"])
-        if not all(any(abs(stamp - heartbeat) <= max_gap for heartbeat in heartbeats) for stamp in required_stamps):
+        # Historical verification never replaces fresh attribution of current activity.
+        current_stamps = [samples[-1][0] for samples in device["aggregate"].values() if samples[-1][1] > 0]
+        if not all(any(abs(stamp - heartbeat) <= max_gap for heartbeat in heartbeats) for stamp in current_stamps):
             raise AdmissionError("missing or stale owned-device heartbeat")
+        if not all(any(abs(stamp - heartbeat) <= max_gap for heartbeat in heartbeats) for stamp in active_stamps):
+            raise AdmissionError("missing or stale owned-device heartbeat")
+
+    def _attributed_origin(self, key, kind, stamp, value):
+        """Only unchanged, previously validated samples may tolerate two microseconds.
+
+        Keep the original timestamp anchor so repeated tiny shifts cannot accumulate
+        into a broad tolerance. Raw snapshots and utilization values remain untouched.
+        """
+        prior = self.attributed_samples.get(key, {}).get(kind, {})
+        if stamp in prior:
+            origin, previous_value = prior[stamp]
+            return origin if previous_value == value else None
+        nearby = [
+            (origin, previous_value)
+            for previous_stamp, (origin, previous_value) in prior.items()
+            if abs(stamp - previous_stamp) <= 2 and abs(stamp - origin) <= 2
+        ]
+        if len(nearby) > 1:
+            raise AdmissionError("ambiguous aggregate timestamp retiming")
+        if not nearby or nearby[0][1] != value:
+            return None
+        origin = nearby[0][0]
+        # Historical events certify only the unchanged anchored alias. They cannot
+        # attribute changed utilization or an otherwise unrecognized timestamp.
+        gap = self.settings["maximum_sample_gap_seconds"] * 1e6
+        return origin if any(abs(origin - event) <= gap for event in self._historical_heartbeats(key)) else None
+
+    def _historical_heartbeats(self, key):
+        stamps = []
+        for entry in self.owned_event_history.get(key, {}).values():
+            actual = self.identity(entry["identity"]["pid"])
+            if actual is None or actual == entry["identity"]:
+                stamps.append(entry["event"]["stamp"])
+        return stamps
+
+    def _remember_validated(self, snapshot):
+        """Cache only real process events after every sensor/identity check passed."""
+        for key in map(str, self.pool):
+            device = snapshot["devices"][key]
+            samples = {
+                kind: {
+                    stamp: (self._attributed_origin(key, kind, stamp, value) or stamp, value)
+                    for stamp, value in rows
+                    if value > 0
+                }
+                for kind, rows in device["aggregate"].items()
+            }
+            cutoff = min(rows[0][0] for rows in device["aggregate"].values())
+            cutoff -= self.settings["maximum_sample_gap_seconds"] * 1e6
+            history = {
+                identifier: entry
+                for identifier, entry in self.owned_event_history.get(key, {}).items()
+                if entry["event"]["stamp"] >= cutoff
+            }
+            for event in device["events"]:
+                identity = self.known_owned.get(event["pid"])
+                if (
+                    identity is not None
+                    and self.identity(event["pid"]) == identity
+                    and 0 <= snapshot["wall_us"] - event["stamp"] <= self.settings["maximum_sample_age_seconds"] * 1e6
+                ):
+                    history[(event["pid"], identity["start_ticks"], event["stamp"])] = {
+                        "identity": json.loads(json.dumps(identity)),
+                        "event": dict(event),
+                    }
+            self.attributed_samples[key] = samples
+            self.owned_event_history[key] = history

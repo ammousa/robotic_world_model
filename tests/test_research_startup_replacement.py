@@ -379,3 +379,136 @@ def test_missing_gpu3_authority_does_not_normalize_resources():
     old, new, compare = gpu3_contract()
     new["world_model"].pop("startup_correction")
     assert compare(old) != compare(new)
+
+
+@pytest.fixture
+def fourth_replacement(third_replacement):
+    root, third_meta, third_fp, _ = third_replacement
+    third_meta["settings_id"] = "third-actual-settings"
+    q = root / "logs/queue/startup"
+    name = "B0-seed33-attempt3-smoke"
+    output = root / "logs/rsl_rl/anymal_d_world_model/2026-01-01_B0-seed33-attempt3-smoke"
+    output.mkdir(parents=True)
+    provenance = output / "research_provenance.json"
+    provenance.write_text(
+        json.dumps(
+            {
+                **{k: third_meta[k] for k in ("cell_id", "variant", "seed", "attempt", "protocol_id", "settings_id")},
+                "runtime_fingerprint": third_fp,
+            }
+        )
+    )
+    stream = output / "locomotion_metrics.jsonl"
+    stream.write_text(json.dumps({"iteration": 0, "Checks/finite_model": 1.0}) + "\n")
+    child = q / (name + ".log")
+    child.write_text("update 1/1000, finite partial technical progress\n")
+    ledger = q / "third-events.jsonl"
+    rows = [
+        {"event": "start", "name": name, "research": third_meta, "source": {**third_fp, "dirty": False}},
+        {"event": "isolation_failed", "reason": "missing or stale owned-device heartbeat"},
+        {"event": "exit", "name": name, "returncode": -15},
+        {"event": "queue_end", "failures": 1},
+    ]
+    ledger.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    audit = q / "third-failure.json"
+    audit.write_text(
+        json.dumps(
+            {
+                "source_commit": third_fp["commit"],
+                "exit_codes": {name: -15},
+                "files": {
+                    p.name: {"path": str(p.relative_to(root)), "sha256": digest(p)} for p in (provenance, stream, child)
+                },
+            }
+        )
+    )
+    meta = copy.deepcopy(third_meta)
+    p = meta["protocol_contract"]
+    p.update(protocol_id="p-fourth", protocol_version=7)
+    p["retry_policy"]["max_attempts"] = 4
+    p["world_model"]["startup_correction"]["user_attempt4_repair"] = {
+        "actual_user_instruction": (
+            "I explicitly authorize reopening the previous operational closure, repairing the monitoring defect, and"
+            " one additional B0 seed-33 technical pilot start (attempt 4)."
+        ),
+        "maximum_ordinary_attempts": 2,
+        "B0_seed33_pilot_max_attempt": 4,
+    }
+    declared = p["world_model"]["controlled_startup_replacements"]["B0-seed33"]
+    declared.update(
+        attempt=4,
+        user_authorized_fourth_start=True,
+        partial_attempt_record={
+            "attempt": 3,
+            "job_name": name,
+            "source_commit": third_fp["commit"],
+            "protocol_id": third_meta["protocol_id"],
+            "closed_queue": str(ledger.relative_to(root)),
+            "closed_queue_sha256": digest(ledger),
+            "failure_audit": str(audit.relative_to(root)),
+            "failure_audit_sha256": digest(audit),
+            "partial_provenance": str(provenance.relative_to(root)),
+            "partial_provenance_sha256": digest(provenance),
+            "partial_stream": str(stream.relative_to(root)),
+            "partial_stream_sha256": digest(stream),
+        },
+    )
+    meta.update(attempt=4, protocol_id="p-fourth", controlled_startup_replacement=declared)
+    (root / "fourth-restart.txt").write_text("user authorized fourth pilot after CPU telemetry repair\n")
+    subprocess.check_call(["git", "add", "fourth-restart.txt"], cwd=root)
+    subprocess.check_call(
+        [
+            "git",
+            "-c",
+            "user.name=Fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "-qm",
+            "reviewed fourth source",
+        ],
+        cwd=root,
+    )
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root).decode().strip()
+    return root, meta, {"commit": commit}, stream
+
+
+def test_fourth_start_binds_real_partial_third_progress_and_all_previous_failures(fourth_replacement):
+    root, meta, fp, _ = fourth_replacement
+    assert verify_controlled_startup(meta, fp, root=root)["controlled_startup_replacement_validated"]
+    previous = meta["controlled_startup_replacement"]["partial_attempt_record"]
+    with pytest.raises(ValueError, match="new reviewed source"):
+        verify_controlled_startup(meta, {"commit": previous["source_commit"]}, root=root)
+
+
+@pytest.mark.parametrize("mutation", ["authority", "cell", "partial_attempt", "stream", "scientific"])
+def test_fourth_start_cannot_expand_scope_or_skip_partial_evidence(fourth_replacement, mutation):
+    root, meta, fp, stream = fourth_replacement
+    if mutation == "authority":
+        meta["protocol_contract"]["world_model"]["startup_correction"]["user_attempt4_repair"].clear()
+    elif mutation == "cell":
+        meta["variant"] = "B1"
+    elif mutation == "partial_attempt":
+        meta["controlled_startup_replacement"]["partial_attempt_record"]["attempt"] = 2
+    elif mutation == "stream":
+        stream.write_text("{}\n")
+    else:
+        meta["protocol_contract"]["training_budget"]["iterations"] += 1
+    with pytest.raises(ValueError):
+        verify_controlled_startup(meta, fp, root=root)
+
+
+def test_job_constructor_limits_fourth_start_to_declared_smoke(fourth_replacement):
+    from test_research_runs import rr
+
+    _, meta, _, _ = fourth_replacement
+    p = meta["protocol_contract"]
+    common = dict(
+        task="Task", variant="B0", seed=33, project="rwm-explore", group="startup", extra=[], num_envs=4, protocol=p
+    )
+    pilot = rr.train_job(**common, iterations=2, smoke=True)
+    assert pilot["name"] == "B0-seed33-attempt4-smoke"
+    assert pilot["research"]["attempt"] == 4
+    assert rr.train_job(**common, iterations=20)["research"]["attempt"] == 1
+    with pytest.raises(ValueError, match="attempt exceeds"):
+        rr.train_job(**common, iterations=20, attempt=4)

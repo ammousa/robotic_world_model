@@ -1,0 +1,26 @@
+schema_version: 1
+group: rwm-discrete-flow
+decision: reject
+chosen_variants: []
+rejected_variants: []
+status: inconclusive
+based_on_protocol: p-52e780722acd810fb0faff20
+based_on_report: https://app.forge.coreweave.com/oxdynamics/rwm-explore/reports/rwm-discrete-flow--VmlldzoxODE1ODA4MQ==
+researcher_note: 'Close the reopened campaign without promotion: zero of five valid
+  pilots, zero of ten full runs and zero of one hundred planned scoring cells completed.
+  B0 exhausted its user-authorized third pilot start. Its local iteration-zero finite
+  stream establishes partial technical progress, not a scientific replicate or prospective
+  accuracy result; D1 and factorial effects remain untested. The stop reflects an
+  unmet telemetry-attribution contract, not established foreign activity, numerical
+  divergence or model inaccuracy. Evidence evidence-4919d3c581f45f9a60f9533c and approved
+  review review-e71881aa250e634319aea6fd support an inconclusive outcome. Preserve
+  the canonical baseline/defaults, predecessor rejection and earlier decision.v1.yaml/receipts/report
+  archives unchanged. Retain comparison source, tests, scientific records, sealed
+  data, diagnostics and all failed/partial attempts solely as a reproducibility archive.
+  No source cleanup, canonical integration or chosen/rejected decision tags are authorized.
+  Preserve smoke rlr9tfts with its existing failed diagnostic tag and actual remote
+  state; do not fabricate completion or remote history. Finish CPU-only reporting,
+  provenance/cost verification and archival; keep the strict scored notebook unexecuted.
+  No additional starts, partial remaining pilots, full training, scoring, inference,
+  timing, physics or rendering are authorized. Decision, receipt and finalization
+  stay uncommitted; no further commits, pushes, merges or history rewrite.'

@@ -576,3 +576,155 @@
   mode: unattended
   at: '2026-10-22T11:22:35.332877+00:00'
   receipt_id: r-10aacac22ac96705f5ec6fc2
+- gate: D
+  actor: researcher
+  verdict: reject
+  reason: Zero of five valid pilots, ten full runs and one hundred scoring cells completed.
+    B0 exhausted its third start after finite partial progress and telemetry-attribution
+    failure. Close without promotion; D1 accuracy and factorial effects remain untested
+    and inconclusive.
+  risk: Partial baseline training is not a scientific replicate. Telemetry revision
+    does not establish foreign activity or model inaccuracy; exhausted attempts remain
+    exhausted.
+  next_action: Archive only; preserve source, defaults, partial run and history. Rebind/reapprove
+    final narrative, finish CPU reporting/verification; leave decision/receipt uncommitted.
+    No further execution, commits or pushes.
+  evidence:
+  - research/rwm-discrete-flow/decision.yaml
+  - logs/queue/rwm-discrete-flow/gpu3-only.failure.json
+  - logs/queue/rwm-discrete-flow/gpu3-third-attempt-independent-disposition.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-54fcc0856e40a52d7456b33a
+    protocol_id: p-52e780722acd810fb0faff20
+    prior_receipts:
+      A: r-086220fe2c1550a4a29e6bc2
+      B: r-4359a240d66d8876a8c11c73
+      C: r-10aacac22ac96705f5ec6fc2
+    decision_id: d-16c2be1bedf4d38b89b023cc
+  workflow_id: w-6f0e14f0e12a64eb1532f19a
+  mode: unattended
+  at: '2026-10-22T11:30:19.747944+00:00'
+  receipt_id: r-c90cafd1d27f7e6299708734
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: Explicit user authority reopens technical repair and permits one B0 pilot
+    attempt four, preserving scientific scope, earlier evidence and hardcaps. Pool
+    accounting retains all charges exactly once. Attempt and reservation changes grant
+    no additional scientific cells or ordinary retries.
+  risk: The monitoring repair requires captured-trace and genuine-violation verification.
+    Current hardware remains blocked; no foreign exemption or signaling is authorized.
+  next_action: Implement only the scoped telemetry and attempt-four boundary, preserve
+    historical closures, then obtain actual B/C and current quiet proof before clean-source
+    dispatch.
+  evidence:
+  - research/rwm-discrete-flow/workflow.yaml
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - logs/queue/rwm-discrete-flow/attempt4.actual-authority.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-f12d8ed3e5674610075a0c4a
+  mode: unattended
+  at: '2026-10-22T16:44:39.360414+00:00'
+  receipt_id: r-1b7cd7093c03421476cd9438
+- gate: B
+  actor: researcher
+  verdict: reject
+  reason: The guard accepts a historical sample shifted by 100000 microseconds with
+    utilization changed from 18 to 99 using cached ownership. This exceeds the unchanged
+    two-microsecond alias repair; the full captured trace passes without that broad
+    fallback.
+  risk: Cached ownership can conceal newly revised active information rather than
+    certify unchanged history. Passing the captured trace does not establish violation
+    rejection.
+  next_action: Restrict historical reuse to validated unchanged anchored aliases;
+    reject changed or out-of-bound samples, add the reproduced negative case, and
+    resubmit B before dispatch.
+  evidence:
+  - src/research_workflow/gpu_admission.py
+  - tests/test_research_gpu_retiming.py
+  - logs/queue/rwm-discrete-flow/attempt4-broad-history-fallback.reproduction.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-2394c6a43cd884d84ab5506a
+    prior_receipts:
+      A: r-1b7cd7093c03421476cd9438
+  workflow_id: w-f12d8ed3e5674610075a0c4a
+  mode: unattended
+  at: '2026-10-22T16:56:32.245429+00:00'
+  receipt_id: r-88df3768bcea085619ec2e98
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The unchanged scientific question now has an explicit training-only admission
+    proposal for a currently idle replay, with audited device roles and interruption
+    risk. Exact monitoring, existing attempt ceilings, all historical charges and
+    strict context-free evaluation remain mandatory.
+  risk: Playback can resume GPU3 computation and consume the final authorized B0 pilot.
+    Current inactivity is not assurance of future inactivity.
+  next_action: Obtain repaired-source B approval and exact C with fresh bound readiness
+    proof; preserve strict nontraining isolation and stop owned work on any violation.
+  evidence:
+  - research/rwm-discrete-flow/workflow.yaml
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - logs/queue/rwm-discrete-flow/attempt4-idle-replay-independent-scope.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-399bda30d4bd720f85ae02cf
+  mode: unattended
+  at: '2026-10-22T17:01:06.105048+00:00'
+  receipt_id: r-dda320d5616d840f46628661
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: The rejected broad fallback is removed. Historical events support only uniquely
+    matched unchanged anchored aliases; current activity still needs fresh attribution.
+    Captured trace and genuine-violation regressions pass. Partial-attempt lineage
+    and unchanged numerical source remain bound.
+  risk: Replay activity can resume and invalidate the final pilot. CPU replay uses
+    disclosed identity fixtures and does not prove future live feasibility.
+  next_action: Review exact bound protocol, fresh readiness, attempt-four provenance,
+    reservations and carried budget at C before any committed clean-source dispatch.
+  evidence:
+  - src/research_workflow/gpu_admission.py
+  - tests/test_research_gpu_retiming.py
+  - logs/queue/rwm-discrete-flow/attempt4.verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-b9a27707879301d740839b79
+    prior_receipts:
+      A: r-dda320d5616d840f46628661
+  workflow_id: w-399bda30d4bd720f85ae02cf
+  mode: unattended
+  at: '2026-10-22T17:02:55.401153+00:00'
+  receipt_id: r-8b19b38e503cfc7e6bb5e74e
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: Exact jobs, authorized B0 fourth-attempt lineage, idle-replay bindings,
+    readiness evidence and cumulative budgets reconcile. Five valid pilots and a complete
+    measured forecast retaining five evaluation GPU-hours are mandatory before full
+    training. Nontraining phases retain strict context-free admission.
+  risk: Replay UI activity can resume and consume the final pilot. Readiness is bounded
+    observation; monitoring failure invalidates attempts and stops progression.
+  next_action: Record, commit/push and verify archived exact bindings; recheck current
+    readiness, then run approved stages sequentially. Stop on failure; no automatic
+    extra attempts or signals.
+  evidence:
+  - research/rwm-discrete-flow/protocol.yaml
+  - logs/queue/rwm-discrete-flow/executable_jobs.attempt4.proposal.json#sha256=8c1efad7945d4953144cec53ab40645837dfff208bcbb9bd560a44d970772d18
+  - logs/queue/rwm-discrete-flow/host_launch_binding.attempt4.proposal.json#sha256=a40d7a6aa44f8329c8106a1bfa412c5ef362bca0adfe50409fb02c6c385e6866
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-b9a27707879301d740839b79
+    protocol_id: p-9556bf8c4d62005c67e2273c
+    prior_receipts:
+      A: r-dda320d5616d840f46628661
+      B: r-8b19b38e503cfc7e6bb5e74e
+  workflow_id: w-399bda30d4bd720f85ae02cf
+  reserved_training_units: 840000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-22T17:04:48.152015+00:00'
+  receipt_id: r-12629156bf41592e1411e57d

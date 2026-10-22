@@ -1,0 +1,58 @@
+schema_version: 1
+group: rwm-discrete-flow
+mode: unattended
+mandate:
+  authorized_by: user
+  objective: Diagnose fixed-control-interval prediction errors and independently approve a falsifiable ANYmal-D discrete-time dynamics design before any method implementation or training.
+  allowed_changes: Existing-evidence CPU diagnosis, literature review, scientific contracts, proposal and W&B reporting now. Subsequent D1/common-orientation factorial implementation and matched experiments require independent design approval and normal B/C gates. Interval-aware and predictor-corrector extensions remain conditional proposals.
+  stop_when: A defensible approved research design and authorized subsequent decision are complete, the carried resource ceiling is exhausted, or the mandate would be exceeded.
+  limits:
+    training_unit: iterations
+    max_variants: 5
+    max_training_seeds: 2
+    max_attempts: 2
+    max_followups: 0
+    max_total_training_units: 420000
+    max_total_evaluation_units: 200000
+    compute_pool: [0, 1]
+    max_GPU_hours_per_device: 12.0
+    max_total_GPU_hours: 24.0
+    prior_comparison_GPU_hours: 9.7347368975
+    remaining_total_GPU_hours: 14.2652631025
+    prior_device_GPU_hours:
+      '0': 0.15472222222222223
+      '1': 0.12333333333333334
+      '2': 4.696403564166667
+      '3': 4.760277777777778
+    proposed_training_seeds: [33, 44]
+    pilot_reuses_final_seed: true
+  permissions:
+    commit: true
+    push: true
+    finalize: true
+  authority_evidence: >-
+    Follow-up user instruction authorizes research, technical diagnosis and experimental design,
+    explicitly prohibits implementation/training until independent design approval, and delegates
+    decisions through the unattended research workflow on GPUs 0/1. Earlier actual user resource
+    authorization remains two GPUs, twelve cumulative hours each, twenty-four total, two training
+    seeds. Independent researcher scope assessment on 2026-10-21 confirms conditional later
+    implementation/execution only after independent design approval and normal B/C gates.
+  proposed_reservations: >-
+    ASSUMPTION upper bounds for a five-configuration design: four common-orientation factorial cells
+    plus a separately matched B0 reference, two fresh seeds, twenty thousand updates per full cell,
+    one one-thousand-update pilot per configuration reusing seed 33, at most one identical
+    infrastructure retry. These counters are design reservations, not execution approval or extra
+    GPU authority. The 420000-iteration counter conservatively charges smoke for both seeds
+    under the generic reservation formula although only seed 33 is planned for pilots. The
+    200000 configured-episode counter covers the explicit all-phase/all-attempt ledger in
+    proposal.yaml; neither counter replaces the carried GPU-hour hard cap. Actual commands,
+    population and cost must pass C. Conditional C/D neural
+    extensions are not included in this initial execution reservation.
+  exclusions:
+    - No model implementation, model inference, training, collection, timing, simulator rendering or GPU jobs during the initial diagnosis/design stage.
+    - No reuse of historical tests or training seeds as independent confirmatory evidence.
+    - No B3 acceleration training; preserve the established fixed-step reparameterization equivalence.
+    - No changed original Gate D decision, historical source records, tags, predictions or artifacts.
+    - No Go2W experiment, policy retraining, analytical contact solver, Transformer, Neural ODE or learned mass matrix in the initial comparison.
+    - No merges, rebases, force pushes, branch/tag deletion, historical evidence deletion or unlimited retries.
+    - Finalization remains uncommitted; no production promotion without an actual D decision.

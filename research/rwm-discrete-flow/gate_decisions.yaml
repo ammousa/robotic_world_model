@@ -120,3 +120,78 @@
   mode: unattended
   at: '2026-10-21T17:34:18.752652+00:00'
   receipt_id: r-3e82d1fa813e62f254896833
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The user-authorized device reassignment preserves the approved D1 factorial
+    question and thresholds. Closed collection attempts, sealed-data provenance and
+    all historical charges are retained; expanded counters account only for the resource
+    amendment, not additional experiments.
+  risk: The pool-transition dispatch deviation remains recorded. Two seeds limit inference;
+    remaining GPU time and exact continuation require renewed B/C.
+  next_action: Renew B and C for outstanding work on GPUs 2/3, reusing the sealed
+    dataset. No recollection, extra runs or reset retry allowances.
+  evidence:
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - research/rwm-discrete-flow/workflow.yaml
+  - logs/queue/rwm-discrete-flow/pool_reassignment_evidence.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-3237f9b2f68722bbc0c36d78
+  mode: unattended
+  at: '2026-10-22T08:11:32.436213+00:00'
+  receipt_id: r-907ce8c9cb4d677822b9a806
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: Executable implementation and scientific settings remain unchanged. Archived
+    contracts preserve prior identity; the cost-only analysis reconciles closed first-pool
+    allocation with active-pool costs exactly once. Sealed data and original decision
+    rules are retained.
+  risk: Historical implementation budget settings describe the first pool; amended
+    protocol governs remaining placement and limits. Forecast and exact continuation
+    still require C.
+  next_action: Submit the GPU 2/3 continuation commands and sealed-artifact bindings
+    for C. Preserve collection attempts, original provenance and all cumulative charges.
+  evidence:
+  - research/rwm-discrete-flow/implementation.yaml
+  - logs/queue/rwm-discrete-flow/pool_amendment_configuration.verification.json
+  - logs/queue/rwm-discrete-flow/pool_amendment_cost_notebook.verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-d694bc87d7ba30c61a3d0830
+    prior_receipts:
+      A: r-907ce8c9cb4d677822b9a806
+  workflow_id: w-3237f9b2f68722bbc0c36d78
+  mode: unattended
+  at: '2026-10-22T08:14:28.289856+00:00'
+  receipt_id: r-895d4d4f0a7154722aa77e8a
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: The resource-only continuation binds GPUs 2/3, verified sealed data, five
+    pilots and ten matched full runs. Carried costs reconcile; fixed shares preserve
+    original ceilings. Full training remains conditional on technical checks and measured
+    forecast plus evaluation reserve.
+  risk: Forecasts remain uncertain and hard caps can prevent completion. Two seeds
+    limit inference; all accuracy, failure and latency criteria remain binding.
+  next_action: Commit/push clean approved records; execute only train/evaluate/render/publish
+    on exclusive GPUs 2/3. No recollection, automatic retries, duplicated runs or
+    scientific follow-ups.
+  evidence:
+  - research/rwm-discrete-flow/protocol.yaml
+  - logs/queue/rwm-discrete-flow/executable_jobs.pool23.proposal.json
+  - logs/queue/rwm-discrete-flow/host_launch_binding.pool23.proposal.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-d694bc87d7ba30c61a3d0830
+    protocol_id: p-321b65c9e708974c680ed55e
+    prior_receipts:
+      A: r-907ce8c9cb4d677822b9a806
+      B: r-895d4d4f0a7154722aa77e8a
+  workflow_id: w-3237f9b2f68722bbc0c36d78
+  reserved_training_units: 420000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-22T08:21:21.564300+00:00'
+  receipt_id: r-301b13e7191bcf751cf66a8f

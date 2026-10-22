@@ -222,3 +222,23 @@ campaign_tooling:
       - 3
     history: Prior rejection receipts and failure artifact remain immutable. workflow.v3/protocol.v3/implementation.v2
       preserve exact executed58f3507 bytes. New B/C required before launch.
+  user_restart:
+    actual_user_instruction: Start it now on gpu 2 and 3
+    historical_D: Archived byte-for-byte decision.v1.yaml and unchanged receipt; renewed execution commits historical
+      provenance only, no finalization cleanup or promotion.
+    scope: Only interleaved guard observation around each child launch; preserve150ms/all checks/no observation
+      reset. Constructor/verifier allow only declared B0/B1 pilot attempt3 with both prior SHA-bound closed ledgers/audits
+      and new reviewed source; ordinary retry max2 retained.
+    numerical_science: Unchanged original heads/data/losses/optimizer/seeds/selection/metrics and clean algorithm928bc58.
+    CPU_verification:
+      tests_passed: 346
+      warning: One existing comparison-template figure warning.
+      tests: Two CPU-only delayed-spawn regressions, third-attempt full lineage/user authority/tamper and ordinary-retry
+        enforcement, all existing tests.
+      initial_failures: Old exact error-message regex updated for declared second-or-third attempt; formatting and
+        queue-complexity hooks required extracting unchanged queued-source check. No scientific change.
+      proof: logs/queue/rwm-discrete-flow/user_restart.verification.json
+      GPU_jobs: 0
+    budget: Previous16s/device remain charged, actual14.1291519914GPUh headroom; fixedshares and hardcaps unchanged.
+      New mechanical630000training/200000eval reservation only, no extra scientificcells.
+    future_attempt_limits: B0/B1 pilot attempt3 only; other3pilots and10full firstattempt, no automaticretry. Freshqueue/trace/controller.

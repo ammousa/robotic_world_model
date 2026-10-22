@@ -283,14 +283,14 @@ def train_job(
     )
     if startup:
         if (
-            attempt not in (1, 2)
+            attempt not in (1, startup.get("attempt"))
             or original_provenance
             or retry_reason not in (None, "controlled_startup_source_change")
         ):
             raise ValueError(
-                "controlled startup replacement requires its declared second attempt, not ordinary retry provenance"
+                "controlled startup replacement requires its declared attempt, not ordinary retry provenance"
             )
-        attempt = 2
+        attempt = startup["attempt"]
         retry_reason = "controlled_startup_source_change"
     if attempt > 1:
         name += f"-attempt{attempt}"
@@ -335,7 +335,13 @@ def train_job(
         if original_provenance and original_settings_id is None:
             original_settings_id = json.loads(Path(original_provenance).read_text()).get("settings_id")
         retry = protocol["retry_policy"]
-        if attempt > retry["max_attempts"]:
+        ordinary_max = (
+            protocol.get("world_model", {})
+            .get("startup_correction", {})
+            .get("user_restart", {})
+            .get("maximum_ordinary_attempts", retry["max_attempts"])
+        )
+        if attempt > (retry["max_attempts"] if startup else ordinary_max):
             raise ValueError("attempt exceeds retry policy")
         if (
             attempt > 1
@@ -362,7 +368,7 @@ def train_job(
         if startup:
             if (
                 protocol.get("domain") != "world_model"
-                or startup.get("attempt") != 2
+                or startup.get("attempt") not in (2, 3)
                 or startup.get("original_attempt") != 1
             ):
                 raise ValueError("invalid world-model startup replacement contract")
@@ -838,6 +844,13 @@ def admission_poll(jobs, allow_shared, training_admission, poll):
     return poll
 
 
+def verify_queued_source(job, source):
+    if job.get("research", {}).get("protocol_id"):
+        current = git_source()
+        if current.get("dirty") or any(current.get(k) != source.get(k) for k in ("commit", "branch")):
+            raise ValueError("source changed while queued; pending scientific jobs not launched")
+
+
 def run_queue(
     jobs: list[dict],
     pool: Sequence[int],
@@ -882,6 +895,21 @@ def run_queue(
     pending, running, failures, waiting_note = list(jobs), {}, 0, None
     dispatch_error = None
     owned_identities = {}
+
+    def observe_training():
+        nonlocal dispatch_error, training_admission
+        try:
+            return training_admission.check(list(owned_identities.values()))
+        except Exception as error:
+            dispatch_error = str(error)
+            _event(log_dir, event="isolation_failed", reason=dispatch_error, pending=[j["name"] for j in pending])
+            pending.clear()
+            for name, expected in owned_identities.items():
+                result = stop_process(expected)
+                _event(log_dir, event="owned_isolation_stop", name=name, result=result)
+            training_admission = None
+            return set(pool)
+
     while pending or running:
         for name, (process, gpu, handle) in list(running.items()):
             code = process.poll()
@@ -895,17 +923,7 @@ def run_queue(
         if not pending and not running:
             break
         if training_admission is not None:
-            try:
-                foreign = training_admission.check(list(owned_identities.values()))
-            except Exception as error:
-                dispatch_error = str(error)
-                _event(log_dir, event="isolation_failed", reason=dispatch_error, pending=[j["name"] for j in pending])
-                pending.clear()
-                for name, expected in owned_identities.items():
-                    result = stop_process(expected)
-                    _event(log_dir, event="owned_isolation_stop", name=name, result=result)
-                training_admission = None
-                foreign = set(pool)
+            foreign = observe_training()
         else:
             foreign = set() if allow_shared or not pending else occupancy()
         if foreign is None:
@@ -914,10 +932,7 @@ def run_queue(
         idle = idle_gpus(pool, ours, foreign - ours, allow_shared)
         for job, gpu in assign(pending, idle):
             try:
-                if job.get("research", {}).get("protocol_id"):
-                    current = git_source()
-                    if current.get("dirty") or any(current.get(k) != source.get(k) for k in ("commit", "branch")):
-                        raise ValueError("source changed while queued; pending scientific jobs not launched")
+                verify_queued_source(job, source)
                 if job.get("research", {}).get("job_type") in {"train", "smoke"}:
                     verify_retry(job["research"], {"commit": source.get("commit")}, source_only=True)
                 argv = substitute_gpu(job["argv"], gpu)
@@ -939,6 +954,9 @@ def run_queue(
                 pending.clear()
                 # Keep monitoring already-launched jobs to their recorded outcomes.
                 break
+            # Do not accumulate source checks and two launches into one unobserved interval.
+            if training_admission is not None and observe_training():
+                break
             handle = (log_dir / f"{job['name']}.log").open("ab")
             process = subprocess.Popen(
                 argv, cwd=ROOT, env={**child_env, "RESEARCH_METADATA": json.dumps(job.get("research", {})), "RESEARCH_GPU": str(gpu), **({"WANDB_JOB_TYPE": job["research"]["job_type"]} if job.get("research") else {})}, stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
@@ -950,6 +968,8 @@ def run_queue(
             print(f"[{now()}] start {job['name']} gpu={gpu} pid={process.pid}", flush=True)
             running[job["name"]] = (process, gpu, handle)
             pending.remove(job)
+            if training_admission is not None and observe_training():
+                break
         note = sorted((set(pool) & (foreign - ours)) - ours) if pending else None
         if note and note != waiting_note:
             print(f"[{now()}] waiting: GPU(s) {note} are in use by other processes", flush=True)

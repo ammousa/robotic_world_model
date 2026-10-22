@@ -207,7 +207,7 @@ def test_job_constructor_marks_only_declared_pilot_attempt_two_and_preserves_ful
     full = rr.train_job(**common, iterations=20)
     assert full["name"] == "B0-seed33"
     assert full["research"]["attempt"] == 1
-    with pytest.raises(ValueError, match="declared second attempt"):
+    with pytest.raises(ValueError, match="declared attempt"):
         rr.train_job(**common, iterations=2, smoke=True, attempt=3)
 
 
@@ -222,3 +222,107 @@ def test_actual_original_output_cannot_be_hidden_by_stale_audit_fields(replaceme
     old_output.mkdir(parents=True)
     with pytest.raises(ValueError, match="original startup has run output"):
         verify_controlled_startup(meta, fp, root=root)
+
+
+@pytest.fixture
+def third_replacement(replacement):
+    root, previous_meta, previous_fp, _, _ = replacement
+    q = root / "logs/queue/startup"
+    name = "B0-seed33-attempt2-smoke"
+    ledger = q / "second-events.jsonl"
+    events = [
+        {
+            "event": "start",
+            "name": name,
+            "source": {"commit": previous_fp["commit"], "dirty": False},
+            "research": previous_meta,
+        },
+        {"event": "isolation_failed", "reason": "missed process observation interval"},
+        {"event": "exit", "name": name, "returncode": -15},
+        {"event": "queue_end", "failures": 1},
+    ]
+    ledger.write_text("".join(json.dumps(e) + "\n" for e in events))
+    child = q / (name + ".log")
+    child.write_text("")
+    audit = q / "second-failure.json"
+    audit.write_text(
+        json.dumps(
+            {
+                "source_commit": previous_fp["commit"],
+                "protocol_id": "p-new",
+                "exit_codes": {name: -15},
+                "child_log_bytes": {name: 0},
+                "training_output_directories": {name: []},
+                "files": {"child": {"path": str(child.relative_to(root)), "sha256": digest(child)}},
+            }
+        )
+    )
+    meta = copy.deepcopy(previous_meta)
+    protocol = meta["protocol_contract"]
+    protocol.update(protocol_id="p-third", protocol_version=5)
+    protocol["retry_policy"]["max_attempts"] = 3
+    protocol["world_model"]["startup_correction"]["user_restart"] = {
+        "actual_user_instruction": "Start it now on gpu 2 and 3",
+        "maximum_ordinary_attempts": 2,
+    }
+    declared = protocol["world_model"]["controlled_startup_replacements"]["B0-seed33"]
+    declared.update(
+        attempt=3,
+        user_authorized_additional_start=True,
+        previous_attempt_record={
+            "attempt": 2,
+            "job_name": name,
+            "source_commit": previous_fp["commit"],
+            "protocol_id": "p-new",
+            "closed_queue": str(ledger.relative_to(root)),
+            "closed_queue_sha256": digest(ledger),
+            "failure_audit": str(audit.relative_to(root)),
+            "failure_audit_sha256": digest(audit),
+        },
+    )
+    meta.update(attempt=3, protocol_id="p-third", controlled_startup_replacement=declared)
+    (root / "user-restart.txt").write_text("approved additional startup only\n")
+    subprocess.check_call(["git", "add", "user-restart.txt"], cwd=root)
+    subprocess.check_call(
+        [
+            "git",
+            "-c",
+            "user.name=Fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "-qm",
+            "reviewed third source",
+        ],
+        cwd=root,
+    )
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root).decode().strip()
+    return root, meta, {"commit": commit}, ledger
+
+
+def test_user_authorized_third_start_retains_both_actual_failed_lineages(third_replacement):
+    root, meta, fingerprint, _ = third_replacement
+    assert verify_controlled_startup(meta, fingerprint, root=root)["controlled_startup_replacement_validated"]
+    previous = meta["controlled_startup_replacement"]["previous_attempt_record"]
+    with pytest.raises(ValueError, match="new reviewed source"):
+        verify_controlled_startup(meta, {"commit": previous["source_commit"]}, root=root)
+
+
+@pytest.mark.parametrize("mutation", ["authority", "previous_attempt", "closed_evidence"])
+def test_third_start_cannot_skip_user_authority_or_second_attempt(third_replacement, mutation):
+    root, meta, fp, ledger = third_replacement
+    if mutation == "authority":
+        meta["protocol_contract"]["world_model"]["startup_correction"]["user_restart"].clear()
+    elif mutation == "previous_attempt":
+        meta["controlled_startup_replacement"]["previous_attempt_record"]["attempt"] = 1
+    else:
+        ledger.write_text(ledger.read_text() + "\n")
+    with pytest.raises(ValueError):
+        verify_controlled_startup(meta, fp, root=root)
+
+
+def test_ordinary_retry_cannot_use_exceptional_third_start(third_replacement):
+    _, meta, fp, _ = third_replacement
+    meta.pop("controlled_startup_replacement")
+    with pytest.raises(ValueError, match="ordinary retry exceeds"):
+        verify_retry(meta, fp)

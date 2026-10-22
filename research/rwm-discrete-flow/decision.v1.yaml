@@ -1,0 +1,22 @@
+schema_version: 1
+group: rwm-discrete-flow
+decision: reject
+chosen_variants: []
+rejected_variants: []
+status: inconclusive
+based_on_protocol: p-ecade10f1bd4b6229b78eaf9
+based_on_report: https://app.forge.coreweave.com/oxdynamics/rwm-explore/reports/RWM-discrete-time-dynamics:-integration-diagnosis-and-factorial-design--VmlldzoxODE1ODA4MQ==
+researcher_note: 'Close this incomplete campaign without candidate promotion: zero
+  of ten full training runs and zero of one hundred planned scoring cells completed.
+  B0/B1 exhausted their two permitted technical pilot attempts; no scientific progress
+  is evidenced. D1 accuracy and the factorial effects remain untested, not scientifically
+  rejected. Evidence evidence-f4fde0966502067c9a268b92 and approved review review-08ee9199dacddff1874b3193
+  support this inconclusive disposition. Preserve canonical baseline/defaults and
+  the predecessor rejection. Retain all comparison model/tooling source, tests, contracts,
+  analysis, sealed data and negative-attempt evidence solely as a reproducibility
+  archive; authorize no source cleanup or canonical integration. No chosen/rejected
+  run tags apply because no prospective train/eval runs exist. Complete CPU-only reporting,
+  provenance/cost verification and archival without executing the scored notebook.
+  No additional attempts, collection, training, scoring, model inference, timing or
+  physics/rendering are authorized. Decision, receipt and finalization stay uncommitted;
+  no further commits, pushes or merges.'

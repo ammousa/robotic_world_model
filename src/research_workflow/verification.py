@@ -323,6 +323,8 @@ def _startup_numeric_contract(protocol):
         "pilot_trace_filename",
     ):
         result["world_model"].pop(name, None)
+    if "retry_policy" in result:
+        result["retry_policy"].pop("max_attempts", None)  # Technical attempt authority, not numerical science.
     return result
 
 
@@ -338,12 +340,13 @@ def verify_controlled_startup(metadata, fingerprint, *, root=None):
     cell = metadata.get("cell_id")
     declared = protocol.get("world_model", {}).get("controlled_startup_replacements", {}).get(cell)
     if (
-        protocol.get("domain") != "world_model"
+        not declared
+        or protocol.get("domain") != "world_model"
         or metadata.get("job_type") != "smoke"
-        or metadata.get("attempt") != 2
+        or metadata.get("attempt") != declared.get("attempt")
         or metadata.get("controlled_startup_replacement") != declared
         or not declared
-        or declared.get("attempt") != 2
+        or declared.get("attempt") not in (2, 3)
         or declared.get("original_attempt") != 1
         or declared.get("ordinary_retry") is not False
         or declared.get("settings_identical") is not False
@@ -412,7 +415,61 @@ def verify_controlled_startup(metadata, fingerprint, *, root=None):
             or hashlib.sha256(path.read_bytes()).hexdigest() != digest
         ):
             raise ValueError("startup replacement numerical source changed")
+    if declared["attempt"] == 3:
+        _verify_additional_startup(metadata, fingerprint, root, declared)
     return {**metadata, "settings_identical": False, "controlled_startup_replacement_validated": True}
+
+
+def _verify_additional_startup(metadata, fingerprint, root, declared):
+    protocol = metadata["protocol_contract"]
+    authority = protocol["world_model"]["startup_correction"].get("user_restart", {})
+    previous = declared.get("previous_attempt_record", {})
+    if (
+        declared.get("user_authorized_additional_start") is not True
+        or authority.get("actual_user_instruction") != "Start it now on gpu 2 and 3"
+        or authority.get("maximum_ordinary_attempts") != 2
+        or previous.get("attempt") != 2
+        or fingerprint["commit"] == previous.get("source_commit")
+    ):
+        raise ValueError("third startup requires explicit user restart and a new reviewed source")
+    raw = _startup_evidence(root, protocol["group"], previous["closed_queue"], previous["closed_queue_sha256"])
+    events = [json.loads(line) for line in raw.decode().splitlines() if line.strip()]
+    starts = [e for e in events if e.get("event") == "start" and e.get("name") == previous["job_name"]]
+    exits = [e for e in events if e.get("event") == "exit" and e.get("name") == previous["job_name"]]
+    if (
+        len(starts) != 1
+        or len(exits) != 1
+        or exits[0].get("returncode") != -15
+        or events[-1].get("event") != "queue_end"
+    ):
+        raise ValueError("third startup requires one closed failed second attempt")
+    old = starts[0]["research"]
+    if (
+        old.get("attempt") != 2
+        or previous["job_name"] != metadata["cell_id"] + "-attempt2-smoke"
+        or old.get("protocol_id") != previous["protocol_id"]
+        or starts[0]["source"].get("commit") != previous["source_commit"]
+        or starts[0]["source"].get("dirty") is not False
+        or _startup_numeric_contract(protocol) != _startup_numeric_contract(old["protocol_contract"])
+    ):
+        raise ValueError("second startup lineage or numerical settings differ")
+    verify_controlled_startup(old, {"commit": previous["source_commit"]}, root=root)
+    audit = json.loads(
+        _startup_evidence(root, protocol["group"], previous["failure_audit"], previous["failure_audit_sha256"])
+    )
+    name = previous["job_name"]
+    if (
+        audit.get("source_commit") != previous["source_commit"]
+        or audit.get("protocol_id") != previous["protocol_id"]
+        or audit.get("exit_codes", {}).get(name) != -15
+        or audit.get("child_log_bytes", {}).get(name) != 0
+        or audit.get("training_output_directories", {}).get(name) != []
+        or (root / previous["closed_queue"]).parent.joinpath(name + ".log").stat().st_size != 0
+        or any((root / "logs/rsl_rl/anymal_d_world_model").glob("*_" + name))
+    ):
+        raise ValueError("second startup has incompatible failure evidence or run output")
+    for entry in audit["files"].values():
+        _startup_evidence(root, protocol["group"], entry["path"], entry["sha256"])
 
 
 def verify_retry(metadata, fingerprint, *, source_only=False):
@@ -420,6 +477,15 @@ def verify_retry(metadata, fingerprint, *, source_only=False):
         return verify_controlled_startup(metadata, fingerprint)
     if metadata.get("attempt", 1) <= 1:
         return metadata
+    ordinary_max = (
+        metadata.get("protocol_contract", {})
+        .get("world_model", {})
+        .get("startup_correction", {})
+        .get("user_restart", {})
+        .get("maximum_ordinary_attempts")
+    )
+    if ordinary_max is not None and metadata["attempt"] > ordinary_max:
+        raise ValueError("ordinary retry exceeds unchanged attempt limit")
     path = metadata.get("original_provenance")
     if not path:
         raise ValueError("retry requires --original-provenance from the original run")

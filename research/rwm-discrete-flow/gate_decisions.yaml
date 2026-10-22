@@ -394,3 +394,108 @@
   mode: unattended
   at: '2026-10-22T10:00:19.474820+00:00'
   receipt_id: r-880418e00f5a0b446fc47655
+- gate: D
+  actor: researcher
+  verdict: reject
+  reason: Zero of ten full runs and zero of one hundred scoring cells completed; B0/B1
+    exhausted permitted pilot attempts. Close without promotion. D1 accuracy and factorial
+    effects remain untested; scientific criteria are inconclusive, not negative.
+  risk: No prospective effect or constraint can be estimated. Unused compute does
+    not restore attempt authority; no candidate can be promoted.
+  next_action: Archive only; preserve source/defaults and evidence, apply no tags,
+    finish CPU reporting/verification, leave decision and receipt uncommitted. No
+    further execution, commits or pushes.
+  evidence:
+  - research/rwm-discrete-flow/decision.yaml
+  - logs/queue/rwm-discrete-flow/observation_gap_failure.json
+  - logs/queue/rwm-discrete-flow/scientific_review.final-incomplete.v1.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-62b3fe82168ed0db6bba71de
+    protocol_id: p-ecade10f1bd4b6229b78eaf9
+    prior_receipts:
+      A: r-12ccd5af5485fedb24de8127
+      B: r-1124c1bb6b73e2a5329f128c
+      C: r-880418e00f5a0b446fc47655
+    decision_id: d-ced95070c5f3284734fbd3b6
+  workflow_id: w-78f0b141d30157216a4a640f
+  mode: unattended
+  at: '2026-10-22T10:12:12.233329+00:00'
+  receipt_id: r-fce502e2929dff7c0ce26dcc
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The renewed user instruction permits one additional B0/B1 technical startup
+    attempt while preserving the falsifiable scientific question, completed closure
+    history, and resource ceilings. Attempt three is exceptional; mechanical reservations
+    authorize no additional scientific cells or ordinary retries.
+  risk: Dispatch interleaving and exceptional attempt enforcement still require verification.
+    Prior inconclusive evidence remains unchanged; no scientific promotion follows
+    from reopening.
+  next_action: Implement only interleaved guard checks and explicit two-pilot attempt-three
+    lineage, preserve all limits/history, then submit actual B/C before clean-source
+    dispatch.
+  evidence:
+  - research/rwm-discrete-flow/workflow.yaml
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - logs/queue/rwm-discrete-flow/user_restart_authority.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-553cd9258653fb159dc9f2f7
+  mode: unattended
+  at: '2026-10-22T10:30:02.402962+00:00'
+  receipt_id: r-3a64dfe2d0d12d7eef4c8b99
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: Per-dispatch checks preserve observation state and the existing limit, preventing
+    batch accumulation while stopping overlong individual dispatches. Attempt-three
+    validation retains both failed lineages and ordinary limits. Numerical source
+    is unchanged; independent targeted tests pass.
+  risk: Real startup and busy-load telemetry remain unverified. The authorized third
+    B0/B1 startup is the final currently permitted replacement.
+  next_action: Submit exact jobs, fresh namespaces, carried costs and reservations
+    at Gate C; commit/push and archive reviewed bindings only after approval.
+  evidence:
+  - scripts/research_runs.py
+  - src/research_workflow/verification.py
+  - logs/queue/rwm-discrete-flow/user_restart.verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-7fefc8d58d6781cb74b6f35d
+    prior_receipts:
+      A: r-3a64dfe2d0d12d7eef4c8b99
+  workflow_id: w-553cd9258653fb159dc9f2f7
+  mode: unattended
+  at: '2026-10-22T10:35:58.385647+00:00'
+  receipt_id: r-eb3c3dfbe6a7f0cbe54f0a73
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: 'Approve the frozen protocol conditionally: exact jobs, exceptional attempt
+    lineage, reservations and carried caps reconcile. Dispatch requires blocker departure,
+    the bound twelve-second readiness proof, clean-source verification and stock guard
+    recheck. Current busy hardware is not approved for dispatch.'
+  risk: Hardware readiness remains unestablished; unknown activity or failed proof
+    prohibits dispatch. Live busy-load feasibility remains technical-pilot evidence,
+    not established performance.
+  next_action: Commit/archive reviewed bytes; launch only after blocker departure,
+    exact readiness proof, clean-source revalidation and stock guard recheck. Otherwise
+    wait; no foreign signals.
+  evidence:
+  - research/rwm-discrete-flow/protocol.yaml
+  - logs/queue/rwm-discrete-flow/executable_jobs.user-restart.current-final.proposal.json#sha256=1b6b3e58c0783aa09fe51e6baf0b7c66e8b3268caf9de0be8cc733e0bdfc94e0
+  - logs/queue/rwm-discrete-flow/gate-C-user-restart-readiness-conditions.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-7fefc8d58d6781cb74b6f35d
+    protocol_id: p-ab4a697c2cf93094b5381eb8
+    prior_receipts:
+      A: r-3a64dfe2d0d12d7eef4c8b99
+      B: r-eb3c3dfbe6a7f0cbe54f0a73
+  workflow_id: w-553cd9258653fb159dc9f2f7
+  reserved_training_units: 630000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-22T10:53:07.783458+00:00'
+  receipt_id: r-34348bbf48bdc3dcf37efaba

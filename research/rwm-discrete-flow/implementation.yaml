@@ -242,3 +242,9 @@ campaign_tooling:
     budget: Previous16s/device remain charged, actual14.1291519914GPUh headroom; fixedshares and hardcaps unchanged.
       New mechanical630000training/200000eval reservation only, no extra scientificcells.
     future_attempt_limits: B0/B1 pilot attempt3 only; other3pilots and10full firstattempt, no automaticretry. Freshqueue/trace/controller.
+gpu3_only_resource_boundary:
+  change: Explicit literal-user-authorized [2,3] to [3] infrastructure normalization only; numerical science still
+    compared against all original failed versions.
+  protocol_version: 6
+  tests: 352 research tests passed in27.50s, one existing matplotlib open-figure warning; changed-file pre-commit
+    passed after automatic formatting. Six meaningful resource-boundary tests; no GPU dispatch.

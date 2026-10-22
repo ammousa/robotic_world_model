@@ -15,20 +15,19 @@ mandate:
     max_variants: 5
     max_training_seeds: 2
     max_attempts: 3
-    max_followups: 4
-    max_total_training_units: 2310000
-    max_total_evaluation_units: 1000000
+    max_followups: 5
+    max_total_training_units: 2940000
+    max_total_evaluation_units: 1200000
     compute_pool:
-    - 2
     - 3
     max_GPU_hours_per_device: 12.0
     max_total_GPU_hours: 24.0
-    prior_comparison_GPU_hours: 9.861959119722222
-    remaining_total_GPU_hours: 14.138040880277778
+    prior_comparison_GPU_hours: 9.866403564166667
+    remaining_total_GPU_hours: 14.133596435833333
     prior_device_GPU_hours:
       '0': 0.22250000000000003
       '1': 0.1827777777777778
-      '2': 4.696403564166667
+      '2': 4.7008480086111115
       '3': 4.760277777777778
     proposed_training_seeds:
     - 33
@@ -56,7 +55,9 @@ mandate:
     unchanged. Actual user subsequently instructed: Start it now on gpu 2 and 3, after explanation of exhausted
     startup attempts. Independent researcher confirms one additional B0/B1 pilot attempt3 and unchanged campaign,
     reviewed per-dispatch guard repair, renewedA/B/C, samehardcaps. Necessary clean-source commit/push authority
-    supersedes prior operational closure only. OldD remains historical unchanged; nextfinalization staysuncommitted.'
+    supersedes prior operational closure only. OldD remains historical unchanged; nextfinalization staysuncommitted.
+    Actual latest user answer: Use gpu 3 instead. GPU3 only; do not signal either Go2W process; same cumulative
+    per-device/global caps. Sixth fingerprint is mechanical only, no extra scientific cells or attempts.'
   proposed_reservations: 'ASSUMPTION upper bounds for a five-configuration design: four common-orientation factorial
     cells plus a separately matched B0 reference, two fresh seeds, twenty thousand updates per full cell, one one-thousand-update
     pilot per configuration reusing seed 33, at most one identical infrastructure retry. These counters are design
@@ -134,3 +135,22 @@ mandate:
     mechanical_reservation_explanation: Four prior420000 training pairs plus new630000=2310000; five200000 evaluation
       pairs=1000000. No new scientific cells or GPUhours; actualattempt3 ONLY B0/B1pilot. Otherpilots/fullruns firstattempt,
       noautomaticretries.
+  user_gpu3_only:
+    actual_user_instruction: Use gpu 3 instead
+    original_compute_pool:
+    - 2
+    - 3
+    compute_pool:
+    - 3
+    original_hours_per_gpu: 7.069020440138889
+    hours_per_gpu: 7.239722222222222
+    physical_device_limit_hours: 12.0
+    global_limit_hours: 24.0
+    closed_GPU2_seconds_carried: 16
+    GPU3_seconds_remaining_in_queue_ledger: 16
+    actual_remaining_GPU3_hours: 7.235277777777778
+    actual_remaining_global_GPU_hours: 14.129151991388888
+    foreign_signals: 0
+    science_change: false
+    forecast_policy: Retain five-hour evaluation reserve; full ten-cell matrix only if fresh valid-pilot measured
+      forecast fits all hardcaps. Otherwise stop before any full cell.

@@ -313,6 +313,9 @@ def _startup_evidence(root, group, name, digest):
 def _startup_numeric_contract(protocol):
     # Only admission and launch bookkeeping may differ after this technical failure.
     result = json.loads(json.dumps(protocol))
+    reassignment = result["world_model"].get("startup_correction", {}).get("user_gpu3_only")
+    if reassignment is not None:
+        _normalize_gpu3_reassignment(result, reassignment)
     for name in ("protocol_id", "protocol_version"):
         result.pop(name, None)
     for name in (
@@ -326,6 +329,27 @@ def _startup_numeric_contract(protocol):
     if "retry_policy" in result:
         result["retry_policy"].pop("max_attempts", None)  # Technical attempt authority, not numerical science.
     return result
+
+
+def _normalize_gpu3_reassignment(protocol, authority):
+    """Compare numerical science across the user's exact single-device reassignment."""
+    expected = {
+        "actual_user_instruction": "Use gpu 3 instead",
+        "original_compute_pool": [2, 3],
+        "compute_pool": [3],
+        "original_hours_per_gpu": 7.069020440138889,
+        "hours_per_gpu": 7.239722222222222,
+        "physical_device_limit_hours": 12.0,
+        "global_limit_hours": 24.0,
+    }
+    if (
+        any(authority.get(key) != value for key, value in expected.items())
+        or protocol.get("compute_pool") != [3]
+        or protocol["world_model"].get("max_GPU_hours_per_device") != expected["hours_per_gpu"]
+    ):
+        raise ValueError("startup resource amendment differs from explicit GPU3-only authority")
+    protocol["compute_pool"] = [2, 3]
+    protocol["world_model"]["max_GPU_hours_per_device"] = expected["original_hours_per_gpu"]
 
 
 def verify_controlled_startup(metadata, fingerprint, *, root=None):

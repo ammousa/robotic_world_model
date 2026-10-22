@@ -2,7 +2,7 @@ schema_version: 1
 domain: world_model
 group: rwm-discrete-flow
 hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
-protocol_version: 5
+protocol_version: 6
 project: rwm-explore
 variants:
   B0:
@@ -67,7 +67,6 @@ training_budget:
   iterations: 20000
   num_envs: 256
 compute_pool:
-- 2
 - 3
 baseline_variants:
 - B0
@@ -351,7 +350,7 @@ world_model:
   pilot_seed: 33
   max_job_seconds: 7200
   max_total_GPU_hours: 24.0
-  max_GPU_hours_per_device: 7.069020440138889
+  max_GPU_hours_per_device: 7.239722222222222
   evaluation_reserve_GPU_hours: 5.0
   collection:
     test_id:
@@ -816,61 +815,43 @@ world_model:
     maximum_sample_age_seconds: 0.6
     quiet_window_seconds: 10
     devices:
-      '2':
-        uuid: GPU-ff404dc7-72ae-8f16-37d9-be9309b71b8f
+      '3':
+        uuid: GPU-bc4ac76d-7cf6-1495-d32d-e5da8e00960e
         passive_processes:
-          '1918495':
+          '2018122':
             identity: &id001
-              pid: 1918495
-              start_ticks: 59810827
-              pgid: 1918495
+              pid: 2018122
+              start_ticks: 60660897
+              pgid: 2018122
               uid: 2679405237
               cmdline:
-              - /home/sa_117912745486381118864/miniconda3/envs/rwm/bin/python
-              - scripts/reinforcement_learning/rsl_rl/train.py
+              - python
+              - src/ilab/scripts/rsl_rl/train.py
               - --task
-              - Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
-              - --headless
+              - go2w-train-dev-rough-deploy
+              - --finetune_checkpoint
+              - reports/go2w_exp4b_deployment_20260924/model_4999.pt
               - --device
-              - cuda:0
-              - --seed
-              - '1'
-              - --max_iterations
-              - '640'
-              - --logger
-              - wandb
-              - --log_project_name
-              - rwm-explore
-              - --group
-              - rwm-novel-losses
-              - --job_type
-              - train
-              - --run_name
-              - gait-r01-seed1-attempt2
-              - --wandb_tags
-              - variant:gait-r01
-              - seed:1
-              - task:Template-Isaac-Velocity-Flat-Anymal-D-Pretrain-v0
-              - hypothesis:h-933d51c8c56ab89b46c3fc1f
-              - protocol:p-ebc0a793660d6e719fd8e0e8
-              - protocol_version:2
-              - cell:gait-r01-seed1
-              - attempt:2
+              - cuda:2
+              - --headless
+              - --viz
+              - none
               - --num_envs
               - '4096'
-              - agent.device=cuda:0
-              - agent.experiment_name=anymal_d_flat_novel_losses
-              - agent.policy_load_path=logs/rsl_rl/anymal_d_flat/2026-10-20_12-35-43_pre/model_850.pt
-              - agent.freeze_policy=true
-              - agent.algorithm.system_dynamics_mask_boundaries=true
-              - agent.algorithm.system_dynamics_dedicated_rng=true
-              - agent.algorithm.system_dynamics_forecast_horizon=32
-              - agent.algorithm.system_dynamics_objective.weighting=balanced
-              - agent.algorithm.system_dynamics_objective.auxiliary=gait
-              - agent.algorithm.system_dynamics_objective.auxiliary_rho=0.1
-              - agent.algorithm.system_dynamics_objective.long_window_every=2
-              cwd: /home/sa_117912745486381118864/0-WORK/rwm-dev-agent-rwm-novel-losses
-            maximum_memory_bytes: 220192768
+              - --max_iterations
+              - '10000'
+              - --seed
+              - '1'
+              - --logger
+              - wandb
+              - --run_name
+              - go2w-deploy-finetune
+              - --note
+              - go2w_exp4b_deployment_20260924-deploy-finetune
+              - env.actuator_delay_start=4
+              - env.actuator_delay_end=4
+              cwd: /home/sa_117912745486381118864/0-WORK/isaac_wm
+            maximum_memory_bytes: 195035136
           '2018235':
             identity: &id002
               pid: 2018235
@@ -903,30 +884,19 @@ world_model:
               - env.actuator_delay_end=4
               cwd: /home/sa_117912745486381118864/0-WORK/isaac_wm
             maximum_memory_bytes: 195035136
-      '3':
-        uuid: GPU-bc4ac76d-7cf6-1495-d32d-e5da8e00960e
-        passive_processes:
-          '1918495':
-            identity: *id001
-            maximum_memory_bytes: 220192768
-          '2018235':
-            identity: *id002
-            maximum_memory_bytes: 195035136
     positive_controls:
-      '0':
-        uuid: GPU-9f742fa1-af41-9f99-455d-4b5d482060b3
+      '2':
+        uuid: GPU-ff404dc7-72ae-8f16-37d9-be9309b71b8f
         identity: *id001
       '1':
         uuid: GPU-94ab9c1f-8044-f886-8dcb-d350804d34ad
         identity: *id002
     maximum_quiet_wait_seconds: 60
     evidence:
-      current_binding_proposal: logs/queue/rwm-discrete-flow/user_restart.current_context_bindings.json
-      current_binding_proposal_sha256: 580d5eb6bbeda7a824d240c174dd8c3549ab41f8f1c3a61ad0ebd28fb4c95da0
-      quiet_evidence: Pending GPU2 active owner exit; no GPU dispatch permitted before fresh quiet window and independent
-        C.
-      historical_trace: Earlier quiet traces bind historical identities only; preserved, not reused as proof for
-        new contexts.
+      current_binding_proposal: logs/queue/rwm-discrete-flow/gpu3-only.context-bindings.json
+      current_binding_proposal_sha256: bcf1fe685343b2690bdb619cb98d62f5d08af4acf4d21ecd86ea625da50917a5
+      quiet_evidence: Fresh twelve-second read-only GPU3 proof required before Gate C.
+      historical_trace: Preserve prior full-pool traces; they are not current GPU3 readiness.
     busy_device_attribution: Inspect every newly covered aggregate interval of each kind and every revised active
       reading, including bursts followed by zero. Unchanged already attributed owned history is excluded. An owned
       context with no process event is admitted only while all newly covered samples and current aggregate values
@@ -934,8 +904,8 @@ world_model:
       telemetry and an actually observed current/recently retired owned-process heartbeat covering EACH required
       timestamp within350ms and wall age600ms. Healthy primary controls cannot substitute. Missing events remain
       absent, never numeric zero. Foreign, identity, memory, sample-gap, age and error rejection remain unchanged.
-  pilot_queue_directory: smoke-user-restart
-  pilot_trace_filename: training-admission-user-restart.jsonl.gz
+  pilot_queue_directory: smoke-gpu3-only
+  pilot_trace_filename: training-admission-gpu3-only.jsonl.gz
   startup_correction:
     kind: controlled_smoke_to_implement_source_change
     original_protocol: protocol.v3.yaml
@@ -1014,6 +984,25 @@ world_model:
         evaluation_units_sum: 188124
         evaluation_units_ceiling: 200000
         additional_actual_scientific_cells: 0
+    user_gpu3_only:
+      actual_user_instruction: Use gpu 3 instead
+      original_compute_pool:
+      - 2
+      - 3
+      compute_pool:
+      - 3
+      original_hours_per_gpu: 7.069020440138889
+      hours_per_gpu: 7.239722222222222
+      physical_device_limit_hours: 12.0
+      global_limit_hours: 24.0
+      closed_GPU2_seconds_carried: 16
+      GPU3_seconds_remaining_in_queue_ledger: 16
+      actual_remaining_GPU3_hours: 7.235277777777778
+      actual_remaining_global_GPU_hours: 14.129151991388888
+      foreign_signals: 0
+      science_change: false
+      forecast_policy: Retain five-hour evaluation reserve; full ten-cell matrix only if fresh valid-pilot measured
+        forecast fits all hardcaps. Otherwise stop before any full cell.
   controlled_startup_replacements:
     B0-seed33:
       kind: changed_source_pretraining_startup_replacement

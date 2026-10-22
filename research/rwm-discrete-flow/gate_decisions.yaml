@@ -499,3 +499,80 @@
   mode: unattended
   at: '2026-10-22T10:53:07.783458+00:00'
   receipt_id: r-34348bbf48bdc3dcf37efaba
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The explicit GPU3 directive changes resources only. The scientific question,
+    thresholds and attempt limits remain fixed; closed GPU2 costs are carried once.
+    Technical feasibility pilots may proceed after B/C; full training remains conditional
+    on the unchanged reserve-and-forecast gate.
+  risk: GPU3 has only 7.2353 usable hours; prior full-campaign estimates exceed this
+    allowance. Do not waive the reserve or launch a partial matrix.
+  next_action: Verify the exact resource-only boundary and current readiness at B/C,
+    then run bounded pilots; stop before full training unless the complete forecast
+    fits.
+  evidence:
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - research/rwm-discrete-flow/workflow.yaml
+  - logs/queue/rwm-discrete-flow/gpu3-only.authority.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-6f0e14f0e12a64eb1532f19a
+  mode: unattended
+  at: '2026-10-22T11:18:53.200134+00:00'
+  receipt_id: r-086220fe2c1550a4a29e6bc2
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: The boundary normalizes only the explicit GPU3 reassignment after validating
+    its literal directive, pool and exact resource values. Scientific differences
+    remain visible; attempt safeguards and numerical source are unchanged. Independent
+    targeted tests pass.
+  risk: Quiet preflight does not establish busy-load feasibility. The single-device
+    allowance remains below prior full-campaign forecasts; no partial matrix or reserve
+    waiver is justified.
+  next_action: Review exact GPU3 jobs, current readiness, carried charges and full-matrix
+    forecast gate at C before any clean-source dispatch.
+  evidence:
+  - src/research_workflow/verification.py
+  - tests/test_research_startup_replacement.py
+  - logs/queue/rwm-discrete-flow/gpu3-only.verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-54fcc0856e40a52d7456b33a
+    prior_receipts:
+      A: r-086220fe2c1550a4a29e6bc2
+  workflow_id: w-6f0e14f0e12a64eb1532f19a
+  mode: unattended
+  at: '2026-10-22T11:20:38.527204+00:00'
+  receipt_id: r-4359a240d66d8876a8c11c73
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: GPU3-only jobs, exceptional attempt lineage, quiet preflight and carried
+    costs reconcile. Approve bounded technical pilots; full training requires all
+    five valid pilots and the entire measured matrix plus unchanged five-hour evaluation
+    reserve fitting the remaining physical-device allowance.
+  risk: Prior forecasts exceed usable GPU3 time. Pilots establish technical feasibility
+    only; failed complete forecasts stop progression. B0/B1 have no further authorized
+    startup.
+  next_action: Record, commit/push and verify archived bindings; run GPU3 pilots,
+    then continue only through passing stock completion and full-budget checks. Stop
+    on failure.
+  evidence:
+  - research/rwm-discrete-flow/protocol.yaml
+  - logs/queue/rwm-discrete-flow/executable_jobs.gpu3-only.proposal.json#sha256=049ce04ae7c13918ab22327d1408ef2fa15826845d65716dd21efc43c5872690
+  - logs/queue/rwm-discrete-flow/host_launch_binding.gpu3-only.proposal.json#sha256=dae86466111ba8b05d049122ea13d6fe1aeaa15b6584010f3a4525034ab9916d
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-54fcc0856e40a52d7456b33a
+    protocol_id: p-52e780722acd810fb0faff20
+    prior_receipts:
+      A: r-086220fe2c1550a4a29e6bc2
+      B: r-4359a240d66d8876a8c11c73
+  workflow_id: w-6f0e14f0e12a64eb1532f19a
+  reserved_training_units: 630000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-22T11:22:35.332877+00:00'
+  receipt_id: r-10aacac22ac96705f5ec6fc2

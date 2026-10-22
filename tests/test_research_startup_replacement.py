@@ -326,3 +326,56 @@ def test_ordinary_retry_cannot_use_exceptional_third_start(third_replacement):
     meta.pop("controlled_startup_replacement")
     with pytest.raises(ValueError, match="ordinary retry exceeds"):
         verify_retry(meta, fp)
+
+
+def gpu3_contract():
+    from research_workflow.verification import _startup_numeric_contract
+
+    old = {
+        "compute_pool": [2, 3],
+        "training_budget": {"iterations": 20000},
+        "world_model": {"max_GPU_hours_per_device": 7.069020440138889},
+    }
+    new = copy.deepcopy(old)
+    new["compute_pool"] = [3]
+    new["world_model"]["max_GPU_hours_per_device"] = 7.239722222222222
+    new["world_model"]["startup_correction"] = {
+        "user_gpu3_only": {
+            "actual_user_instruction": "Use gpu 3 instead",
+            "original_compute_pool": [2, 3],
+            "compute_pool": [3],
+            "original_hours_per_gpu": 7.069020440138889,
+            "hours_per_gpu": 7.239722222222222,
+            "physical_device_limit_hours": 12.0,
+            "global_limit_hours": 24.0,
+        }
+    }
+    return old, new, _startup_numeric_contract
+
+
+def test_exact_user_gpu3_amendment_preserves_numeric_contract():
+    old, new, compare = gpu3_contract()
+    assert compare(old) == compare(new)
+    new["training_budget"]["iterations"] += 1
+    assert compare(old) != compare(new)
+
+
+@pytest.mark.parametrize("mutation", ["pool", "directive", "hours", "cap"])
+def test_gpu3_boundary_rejects_unapproved_resources(mutation):
+    _, new, compare = gpu3_contract()
+    if mutation == "pool":
+        new["compute_pool"] = [2]
+    elif mutation == "directive":
+        new["world_model"]["startup_correction"]["user_gpu3_only"]["actual_user_instruction"] = "assumed"
+    elif mutation == "hours":
+        new["world_model"]["max_GPU_hours_per_device"] = 12.0
+    else:
+        new["world_model"]["startup_correction"]["user_gpu3_only"]["global_limit_hours"] = 25.0
+    with pytest.raises(ValueError, match="explicit GPU3-only authority"):
+        compare(new)
+
+
+def test_missing_gpu3_authority_does_not_normalize_resources():
+    old, new, compare = gpu3_contract()
+    new["world_model"].pop("startup_correction")
+    assert compare(old) != compare(new)

@@ -15,9 +15,9 @@ mandate:
     max_variants: 5
     max_training_seeds: 2
     max_attempts: 2
-    max_followups: 2
-    max_total_training_units: 1260000
-    max_total_evaluation_units: 600000
+    max_followups: 3
+    max_total_training_units: 1680000
+    max_total_evaluation_units: 800000
     compute_pool:
     - 2
     - 3
@@ -49,7 +49,11 @@ mandate:
     permits preparation of a narrowly identity-bound training/pilot-only inactive-context admission correction under
     the actual same user resource instruction. A third fingerprint is a mechanical engineering reservation only;
     new dispatch still requires actual renewed A/B/C, with no additional scientific runs, attempts, updates, seeds,
-    retries, follow-ups or GPU-hour authority.
+    retries, follow-ups or GPU-hour authority. Independent startup-heartbeat-scope-assessment.json permits preparation
+    of a controlled smoke-to-implementation correction after actual startup-stop, with renewed A/B/C and truthful
+    cross-version B0/B1 pilot attempt2. This is not an identical source-preserving infrastructure retry. Four mechanical
+    fingerprints only; hardcaps, actual max2 attempts, all numeric model training and evaluation science remain
+    unchanged.
   proposed_reservations: 'ASSUMPTION upper bounds for a five-configuration design: four common-orientation factorial
     cells plus a separately matched B0 reference, two fresh seeds, twenty thousand updates per full cell, one one-thousand-update
     pilot per configuration reusing seed 33, at most one identical infrastructure retry. These counters are design
@@ -86,7 +90,20 @@ mandate:
     carry_evidence: logs/queue/rwm-discrete-flow/pool_reassignment_evidence.json
     carry_evidence_sha256: c09079cce3356422f3ee1db912b94d38982101273354e37231e944f12f82964f
     maximum_scientific_followups: 0
-    mechanical_reservation_explanation: Three fingerprint reservations remain conservatively counted. Third fingerprint
-      changes monitored training admission only; it grants zero additional actual scientific execution or GPU-hour
-      authority. All evaluation/rendering/timing retain the original zero-foreign-context rule. Existing approvals
-      and failed/closed costs remain historical records.
+    mechanical_reservation_explanation: 'Four mechanically reserved protocol/implementation pairs, not four scientific
+      campaigns. Controlled startup correction: B0/B1 pilot attempt2 across versions; other three pilots attempt1;
+      no extra valid pilots, final training cells, epochs, seeds, scientific followups or GPU-hour authority. Current-pool
+      failed14s/device remain charged in existing recursive queue ledger; initial carried prior/fixed7.069020440138889h
+      shares remain unchanged.'
+  startup_correction:
+    independent_scope_assessment: logs/queue/rwm-discrete-flow/startup-heartbeat-scope-assessment.json
+    failed_source: 58f3507e15b615f0612700d2f741af817a8f638e
+    failed_protocol: p-27297613cb0bba599e5cc7c3
+    failure_evidence: logs/queue/rwm-discrete-flow/startup_heartbeat_failure.json
+    allowed_preparation: Correct inactive-owned-context admission only, explicit changed-source technical restart
+      metadata/selection and fresh queue namespace; preserve ordinary strict identical-retry checks. Actual A/B/C
+      required before relaunch.
+    max_actual_attempts_per_cell_across_versions: 2
+    no_automatic_retry: true
+    scientific_progress_in_failed_pilots: Not evidenced; do not claim proven zero optimizer steps.
+    no_future_attempt_after_this_replacement: true

@@ -311,8 +311,11 @@ class TrainingAdmission:
             active_stamps.extend(
                 stamp for stamp, value in samples if value > 0 and (stamp > prior or previous.get(stamp) != value)
             )
-        if not active_stamps and not owned_pids:
-            return  # Retained, already covered owned history is not new activity.
+        current_active = any(samples[-1][1] > 0 for samples in device["aggregate"].values())
+        if not active_stamps and (not owned_pids or not current_active):
+            # A context can precede its first event. Covered zero-activity windows
+            # need no invented heartbeat; every newly active interval still does.
+            return
         events = device["events"]
         if device["process_event_status"] != 0 or not events:
             raise AdmissionError("busy device attribution missing")

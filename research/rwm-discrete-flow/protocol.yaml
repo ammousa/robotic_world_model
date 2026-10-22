@@ -2,7 +2,7 @@ schema_version: 1
 domain: world_model
 group: rwm-discrete-flow
 hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
-protocol_version: 3
+protocol_version: 4
 project: rwm-explore
 variants:
   B0:
@@ -1135,11 +1135,82 @@ world_model:
     maximum_quiet_wait_seconds: 60
     evidence: *id001
     busy_device_attribution: Inspect every newly covered aggregate interval of each kind and every revised active
-      reading, including bursts followed by zero. Unchanged already attributed owned history is excluded. Any current
-      owned context or newly observed activity requires rc0/nonempty per-device process telemetry and an actually
-      observed current/recently retired owned-process heartbeat covering EACH required timestamp within350ms and
-      wall age600ms. Healthy primary controls cannot substitute. Absent events remain non-events only for covered
-      inactivity.
+      reading, including bursts followed by zero. Unchanged already attributed owned history is excluded. An owned
+      context with no process event is admitted only while all newly covered samples and current aggregate values
+      are valid, fresh and zero. Any active or revised-active interval requires rc0/nonempty per-device process
+      telemetry and an actually observed current/recently retired owned-process heartbeat covering EACH required
+      timestamp within350ms and wall age600ms. Healthy primary controls cannot substitute. Missing events remain
+      absent, never numeric zero. Foreign, identity, memory, sample-gap, age and error rejection remain unchanged.
+  pilot_queue_directory: smoke-startup-correction
+  pilot_trace_filename: training-admission-startup-correction.jsonl.gz
+  startup_correction:
+    kind: controlled_smoke_to_implement_source_change
+    original_protocol: protocol.v3.yaml
+    original_source_commit: 58f3507e15b615f0612700d2f741af817a8f638e
+    original_C_receipt: r-5535eec41e8ef8055ebc0e03
+    failure_audit: logs/queue/rwm-discrete-flow/startup_heartbeat_failure.json
+    failure_audit_sha256: 5725f5f11e4caa583f7948273fba7948242467ede74fbf4283c0bdfd4c5649ab
+    closed_old_queue: logs/queue/rwm-discrete-flow/smoke/events.jsonl
+    closed_old_queue_sha256: bacbf95141c9b6c5c23411091e77e1da2b024d0642acaf6c1ce851f09f3d0413
+    guard_trace: logs/queue/rwm-discrete-flow/training-admission.jsonl.gz
+    guard_trace_sha256: 152db9ba538588c69c8fe10e96be32bac68e4de3de9fdd09fe60742fc21c965c
+    scope: Owned CUDA context alone may lack a process event only while all newly covered aggregate samples and
+      current sensor values are covered, fresh and zero. Any active/revised-active interval still requires actual
+      fresh owned heartbeat; retain all foreign/unknown/memory/stale/gap/error guards.
+    cost: Old14s/device=.0077777777777777776GPUh remain charged globally; current actual headroom14.1302631025GPUh.
+      Keep initial carried prior/fixed shares unchanged. Forecast totalspent includes oldfailedstarts, throughput
+      uses only five new verified valid pilots.
+    restart_semantics: Changed-source controlled technical replacement, not identical retry. Explicitly mark B0/B1
+      pilot attempts2 and their actual original queue-event lineage; other three pilots attempt1. Preserve ordinary
+      identical-retry verification. Fresh queue directory, no oldqueue/trace/log overwrite. No subsequent automatic
+      retry.
+    model_selection: Five valid technical pilots required before forecast and auto-full, excluded from scientific
+      seed aggregation. Select only first valid allowed technical replacement; no scientific/checkpoint cherry picking.
+      Final ten training runs remain first attempts20k on seeds33/44.
+    unchanged_model_source_sha256:
+      src/world_modeling/__init__.py: ee4488edc34963dc5ad1fd20469e87a8166ce48cb7b41c1b44e3a331d917edf5
+      src/world_modeling/collection.py: 5df21c00413f21b153b8a1a325faa463fb5977dd33ee907d8605aaf8449a8b78
+      src/world_modeling/core.py: b1272a50d2bfeacbd04b2193e6dd4af3c424e417a6c3f69cb1edd9bab9542739
+      src/world_modeling/dataset.py: 5344355c6fc2d316c86951f6a1f55215399773a90a2eac7ce9e217390d681914
+      src/world_modeling/diagnostics.py: 65bb933b95f415130641deda7870389d84e7f6e451605c0abb674bf1a8e77382
+      src/world_modeling/evaluation.py: 9bbe283d020896356a256fbab95616b23e9de4f0ad92405f796145add2476a1a
+      src/world_modeling/kinematics.py: 3a4c94eedb7e154e05f13670a0ac8d026e2727a1ca142718fe396df7f8e6501c
+      src/world_modeling/results.py: 801eeee2d3f87034c166078da32fe02b2dddf0e66c4df84d7a3b679b1a84712e
+      src/world_modeling/train.py: 1c35bda160ca1c12f9ec7496f97066255b210a3184658f8f9577096b89c6d25a
+      src/world_modeling/visualization.py: 8caa4c39b27e6cc0bfa616d6033611f873f82e70b9fde6320224746d02281f0a
+  controlled_startup_replacements:
+    B0-seed33:
+      kind: changed_source_pretraining_startup_replacement
+      attempt: 2
+      original_attempt: 1
+      original_job_name: B0-seed33-smoke
+      original_protocol_id: p-27297613cb0bba599e5cc7c3
+      original_source_commit: 58f3507e15b615f0612700d2f741af817a8f638e
+      closed_queue: logs/queue/rwm-discrete-flow/smoke/events.jsonl
+      closed_queue_sha256: bacbf95141c9b6c5c23411091e77e1da2b024d0642acaf6c1ce851f09f3d0413
+      failure_audit: logs/queue/rwm-discrete-flow/startup_heartbeat_failure.json
+      failure_audit_sha256: 5725f5f11e4caa583f7948273fba7948242467ede74fbf4283c0bdfd4c5649ab
+      training_progress: not evidenced
+      settings_identical: false
+      ordinary_retry: false
+      numeric_model_training_unchanged: true
+      selection: first valid permitted replacement only
+    B1-seed33:
+      kind: changed_source_pretraining_startup_replacement
+      attempt: 2
+      original_attempt: 1
+      original_job_name: B1-seed33-smoke
+      original_protocol_id: p-27297613cb0bba599e5cc7c3
+      original_source_commit: 58f3507e15b615f0612700d2f741af817a8f638e
+      closed_queue: logs/queue/rwm-discrete-flow/smoke/events.jsonl
+      closed_queue_sha256: bacbf95141c9b6c5c23411091e77e1da2b024d0642acaf6c1ce851f09f3d0413
+      failure_audit: logs/queue/rwm-discrete-flow/startup_heartbeat_failure.json
+      failure_audit_sha256: 5725f5f11e4caa583f7948273fba7948242467ede74fbf4283c0bdfd4c5649ab
+      training_progress: not evidenced
+      settings_identical: false
+      ordinary_retry: false
+      numeric_model_training_unchanged: true
+      selection: first valid permitted replacement only
 assumptions:
 - ASSUMPTION fresh training seeds33/44,5configurations,20k updates each,5pilot runs of1000updates reusing33, batch256
   and exact optimizer are the independently approved proposed scientific design; C binds executable commands.

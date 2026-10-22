@@ -231,6 +231,10 @@ def train(protocol, rr, env, budget):
         )
         for variant, spec in protocol["variants"].items()
     ]
+    pilot_directory = settings.get("pilot_queue_directory", "smoke")
+    if not pilot_directory or Path(pilot_directory).name != pilot_directory or pilot_directory in {".", ".."}:
+        raise ValueError("pilot queue directory must be one fresh path component")
+    smoke_scratch = Path(budget["log_root"]) / pilot_directory
     # This opt-in guard never applies to scoring, simulator shadow, rendering or timing.
     # Evaluation keeps run_queue's stock zero-foreign-context admission unchanged.
     admission = None
@@ -238,7 +242,9 @@ def train(protocol, rr, env, budget):
         from research_workflow.gpu_admission import TrainingAdmission
 
         admission = TrainingAdmission(
-            context_settings, protocol["compute_pool"], trace=Path(budget["log_root"]) / "training-admission.jsonl.gz"
+            context_settings,
+            protocol["compute_pool"],
+            trace=Path(budget["log_root"]) / settings.get("pilot_trace_filename", "training-admission.jsonl.gz"),
         )
         admission.wait_for_quiet()  # Read-only support/coverage check before pinning or launching.
     tag = rr.pin_launch(protocol["group"], "train")
@@ -248,14 +254,14 @@ def train(protocol, rr, env, budget):
     if rr.run_queue(
         smoke,
         protocol["compute_pool"],
-        scratch / "smoke",
+        smoke_scratch,
         env=env,
         launch_tag=tag,
         gpu_budget={**budget, "max_job_seconds": 900},
         training_admission=admission,
     ):
         raise RuntimeError("technical pilot failed; no full training launched")
-    evidence = rr.check_smoke_gate(smoke, protocol, scratch / "smoke", commit=rr.git_source()["commit"])
+    evidence = rr.check_smoke_gate(smoke, protocol, smoke_scratch, commit=rr.git_source()["commit"])
     print(json.dumps(evidence, indent=2), flush=True)
     if not evidence["passed"] or not protocol["smoke_gate"]["auto_full"]:
         raise RuntimeError("technical verification or auto-full authorization missing")
@@ -264,7 +270,7 @@ def train(protocol, rr, env, budget):
     from research_workflow.gpu_budget import used_seconds
 
     spent = sum(used_seconds(scratch, gpu) for gpu in protocol["compute_pool"])
-    pilot_seconds = sum(used_seconds(scratch / "smoke", gpu) for gpu in protocol["compute_pool"])
+    pilot_seconds = sum(used_seconds(smoke_scratch, gpu) for gpu in protocol["compute_pool"])
     estimated_full = (
         pilot_seconds
         * (protocol["training_budget"]["iterations"] / protocol["smoke_gate"]["iterations"])

@@ -9,6 +9,7 @@ import hashlib
 import inspect
 import json
 import math
+import subprocess
 from pathlib import Path
 
 # rsl_rl stores the runner config in W&B as ``train_cfg`` (rsl_rl >= 3) or ``runner_cfg`` (the rsl_rl_rwm
@@ -290,7 +291,133 @@ def retry_reference(metadata, path):
     }
 
 
+@functools.lru_cache(maxsize=256)
+def _committed_source_digest(root, commit, name):
+    try:
+        raw = subprocess.check_output(["git", "show", f"{commit}:{name}"], cwd=root, stderr=subprocess.PIPE)
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise ValueError("original startup numerical source is unavailable") from error
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _startup_evidence(root, group, name, digest):
+    path = (root / name).resolve()
+    if not path.is_relative_to((root / "logs/queue" / group).resolve()):
+        raise ValueError("startup evidence must remain in its comparison queue")
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != digest:
+        raise ValueError("controlled startup evidence changed")
+    return raw
+
+
+def _startup_numeric_contract(protocol):
+    # Only admission and launch bookkeeping may differ after this technical failure.
+    result = json.loads(json.dumps(protocol))
+    for name in ("protocol_id", "protocol_version"):
+        result.pop(name, None)
+    for name in (
+        "training_context_admission",
+        "startup_correction",
+        "controlled_startup_replacements",
+        "pilot_queue_directory",
+        "pilot_trace_filename",
+    ):
+        result["world_model"].pop(name, None)
+    return result
+
+
+def verify_controlled_startup(metadata, fingerprint, *, root=None):
+    """A reviewed changed-source startup replacement is never an identical retry.
+
+    This narrow path requires actual closed queue evidence when startup produced no
+    run provenance. Ordinary training and identical-infrastructure retry rules stay
+    in verify_retry. No historical provenance or optimizer-step count is invented.
+    """
+    root = Path(root) if root is not None else Path(__file__).resolve().parents[2]
+    protocol = metadata.get("protocol_contract", {})
+    cell = metadata.get("cell_id")
+    declared = protocol.get("world_model", {}).get("controlled_startup_replacements", {}).get(cell)
+    if (
+        protocol.get("domain") != "world_model"
+        or metadata.get("job_type") != "smoke"
+        or metadata.get("attempt") != 2
+        or metadata.get("controlled_startup_replacement") != declared
+        or not declared
+        or declared.get("attempt") != 2
+        or declared.get("original_attempt") != 1
+        or declared.get("ordinary_retry") is not False
+        or declared.get("settings_identical") is not False
+        or metadata.get("settings_identical") is not False
+        or metadata.get("original_provenance")
+    ):
+        raise ValueError("invalid controlled startup replacement")
+    if not fingerprint.get("commit") or fingerprint["commit"] == declared["original_source_commit"]:
+        raise ValueError("controlled startup replacement requires its reviewed new source commit")
+    group = protocol["group"]
+    raw = _startup_evidence(root, group, declared["closed_queue"], declared["closed_queue_sha256"])
+    events = [json.loads(line) for line in raw.decode().splitlines() if line.strip()]
+    name = declared["original_job_name"]
+    starts = [event for event in events if event.get("event") == "start" and event.get("name") == name]
+    exits = [event for event in events if event.get("event") == "exit" and event.get("name") == name]
+    if (
+        len(starts) != 1
+        or len(exits) != 1
+        or exits[0].get("returncode") != -15
+        or not events
+        or events[-1].get("event") != "queue_end"
+        or not any(event.get("event") == "isolation_failed" for event in events)
+    ):
+        raise ValueError("startup replacement requires one closed failed original attempt")
+    original = starts[0]
+    old = original["research"]
+    if (
+        name != cell + "-smoke"
+        or old.get("attempt") != 1
+        or old.get("job_type") != "smoke"
+        or any(old.get(key) != metadata.get(key) for key in ("cell_id", "variant", "seed", "task", "hypothesis_id"))
+        or original["source"].get("dirty") is not False
+        or original["source"].get("commit") != declared["original_source_commit"]
+        or old.get("protocol_id") != declared["original_protocol_id"]
+        or protocol.get("protocol_id") == old.get("protocol_id")
+    ):
+        raise ValueError("controlled startup lineage differs from original")
+    if _startup_numeric_contract(protocol) != _startup_numeric_contract(old["protocol_contract"]):
+        raise ValueError("controlled startup replacement changes scientific settings")
+    audit = json.loads(_startup_evidence(root, group, declared["failure_audit"], declared["failure_audit_sha256"]))
+    if (
+        audit.get("original_protocol") != declared["original_protocol_id"]
+        or audit.get("source_commit") != declared["original_source_commit"]
+        or audit.get("exit_codes", {}).get(name) != -15
+        or audit.get("child_log_bytes", {}).get(name) != 0
+        or audit.get("training_output_directories", {}).get(name) != []
+        or audit.get("no_automatic_retry") is not True
+    ):
+        raise ValueError("startup failure evidence does not support this replacement")
+    for entry in audit["files"].values():
+        _startup_evidence(root, group, entry["path"], entry["sha256"])
+    child_log = (root / declared["closed_queue"]).parent / (name + ".log")
+    old_outputs = root / "logs/rsl_rl/anymal_d_world_model"
+    if child_log.stat().st_size != 0 or any(old_outputs.glob("*_" + name)):
+        raise ValueError("original startup has run output; cannot use the pre-provenance replacement boundary")
+    unchanged = protocol["world_model"]["startup_correction"]["unchanged_model_source_sha256"]
+    required = {"src/world_modeling/" + name for name in ("train.py", "core.py", "dataset.py", "kinematics.py")}
+    if not required.issubset(unchanged):
+        raise ValueError("startup replacement lacks numerical-source binding")
+    for name, digest in unchanged.items():
+        path = (root / name).resolve()
+        if not path.is_relative_to((root / "src/world_modeling").resolve()) or path.name == "campaign.py":
+            raise ValueError("invalid startup numerical-source path")
+        if (
+            _committed_source_digest(str(root), declared["original_source_commit"], name) != digest
+            or hashlib.sha256(path.read_bytes()).hexdigest() != digest
+        ):
+            raise ValueError("startup replacement numerical source changed")
+    return {**metadata, "settings_identical": False, "controlled_startup_replacement_validated": True}
+
+
 def verify_retry(metadata, fingerprint, *, source_only=False):
+    if metadata.get("controlled_startup_replacement"):
+        return verify_controlled_startup(metadata, fingerprint)
     if metadata.get("attempt", 1) <= 1:
         return metadata
     path = metadata.get("original_provenance")

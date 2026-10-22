@@ -319,3 +319,78 @@
   mode: unattended
   at: '2026-10-22T09:16:20.470112+00:00'
   receipt_id: r-5535eec41e8ef8055ebc0e03
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The falsifiable factorial question and thresholds remain unchanged. The
+    amendment permits only a controlled startup correction, preserves failed costs,
+    and limits replacements to existing attempt ceilings. Mechanical reservations
+    add no scientific cells or GPU authority.
+  risk: Inactive-context startup handling and truthful cross-version replacement selection
+    still require implementation verification. No scientific progress is established
+    by the failed pilots.
+  next_action: Implement only the scoped admission and replacement boundary, test
+    all failure cases, then submit renewed B and exact C before relaunch.
+  evidence:
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - research/rwm-discrete-flow/workflow.yaml
+  - logs/queue/rwm-discrete-flow/startup_heartbeat_failure.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-78f0b141d30157216a4a640f
+  mode: unattended
+  at: '2026-10-22T09:35:48.140319+00:00'
+  receipt_id: r-12ccd5af5485fedb24de8127
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: Inactive owned contexts may lack events only during covered inactivity;
+    active intervals retain attribution checks. The explicit changed-source replacement
+    validates closed evidence and unchanged science, preserves ordinary retry safeguards,
+    and counts B0/B1 as attempt two. Targeted tests pass.
+  risk: Busy-load telemetry and future clean-commit launch remain unverified. B0/B1
+    have no further permitted pilot attempt after replacement.
+  next_action: Review exact replacement jobs, fresh namespaces, complete pilot selection,
+    carried costs and forecast at Gate C before committing and relaunching.
+  evidence:
+  - src/research_workflow/gpu_admission.py
+  - src/research_workflow/verification.py
+  - logs/queue/rwm-discrete-flow/startup_correction.verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-62b3fe82168ed0db6bba71de
+    prior_receipts:
+      A: r-12ccd5af5485fedb24de8127
+  workflow_id: w-78f0b141d30157216a4a640f
+  mode: unattended
+  at: '2026-10-22T09:58:52.885591+00:00'
+  receipt_id: r-1124c1bb6b73e2a5329f128c
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: Exact jobs truthfully replace only B0/B1 pilot attempts, preserve numerical
+    settings and sealed data, and use fresh namespaces. Failed costs remain charged.
+    All five valid pilots and a forecast retaining five evaluation GPU-hours are required
+    before full training.
+  risk: Busy-load telemetry remains unverified. B0/B1 replacements exhaust permitted
+    pilot attempts; any failure stops progression without automatic retry.
+  next_action: Record, commit/push reviewed files, verify archived bindings, then
+    run train/evaluate/render/publish sequentially under unchanged limits. Stop on
+    failure; preserve every attempt.
+  evidence:
+  - research/rwm-discrete-flow/protocol.yaml
+  - logs/queue/rwm-discrete-flow/executable_jobs.startup-correction.proposal.json#sha256=a2d8cf78c24eb6ca6a1e68dc12a66142d237a5dc7c43737a8911e664aa1392a2
+  - logs/queue/rwm-discrete-flow/host_launch_binding.startup-correction.proposal.json#sha256=7eddb004a2738b5de0520c0649f1a417d42963cb2dcd990533ff05c85e833ece
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-62b3fe82168ed0db6bba71de
+    protocol_id: p-ecade10f1bd4b6229b78eaf9
+    prior_receipts:
+      A: r-12ccd5af5485fedb24de8127
+      B: r-1124c1bb6b73e2a5329f128c
+  workflow_id: w-78f0b141d30157216a4a640f
+  reserved_training_units: 420000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-22T10:00:19.474820+00:00'
+  receipt_id: r-880418e00f5a0b446fc47655

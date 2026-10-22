@@ -275,9 +275,23 @@ def train_job(
     original_provenance: str | None = None,
 ) -> dict:
     """``smoke`` marks a short test run (``job_type=smoke``); ``dirty`` adds the ``dirty`` tag."""
-    name = run_name(variant, seed)
     if type(attempt) is not int or attempt < 1:
         raise ValueError("attempt must be a positive integer")
+    name = run_name(variant, seed)
+    startup = (
+        (protocol or {}).get("world_model", {}).get("controlled_startup_replacements", {}).get(name) if smoke else None
+    )
+    if startup:
+        if (
+            attempt not in (1, 2)
+            or original_provenance
+            or retry_reason not in (None, "controlled_startup_source_change")
+        ):
+            raise ValueError(
+                "controlled startup replacement requires its declared second attempt, not ordinary retry provenance"
+            )
+        attempt = 2
+        retry_reason = "controlled_startup_source_change"
     if attempt > 1:
         name += f"-attempt{attempt}"
     if smoke:
@@ -323,7 +337,11 @@ def train_job(
         retry = protocol["retry_policy"]
         if attempt > retry["max_attempts"]:
             raise ValueError("attempt exceeds retry policy")
-        if attempt > 1 and (retry_reason not in retry["allowed_reasons"] or original_settings_id != settings_id):
+        if (
+            attempt > 1
+            and not startup
+            and (retry_reason not in retry["allowed_reasons"] or original_settings_id != settings_id)
+        ):
             raise ValueError("retry requires an allowed reason and identical original settings ID")
         metadata = {
             "workflow": "scientific-contract-v1",
@@ -341,6 +359,14 @@ def train_job(
             "job_type": "smoke" if smoke else "train",
             "protocol_contract": protocol,
         }
+        if startup:
+            if (
+                protocol.get("domain") != "world_model"
+                or startup.get("attempt") != 2
+                or startup.get("original_attempt") != 1
+            ):
+                raise ValueError("invalid world-model startup replacement contract")
+            metadata.update(controlled_startup_replacement=startup, settings_identical=False)
         if original_provenance:
             from research_workflow.verification import retry_reference
 

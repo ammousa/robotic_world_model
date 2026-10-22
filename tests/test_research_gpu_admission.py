@@ -315,3 +315,18 @@ def test_old_attributed_owned_history_does_not_require_new_activity_heartbeat():
     snapshot["wall_us"] += 50000
     device.update(process_event_status=6, events=[])
     guard.validate(snapshot, [])
+
+
+def test_owned_context_startup_without_event_is_allowed_only_while_covered_inactive():
+    guard, snapshot, identities = fixture()
+    guard.validate(snapshot, [])
+    guard.previous = copy.deepcopy(snapshot)
+    snapshot["monotonic"] += 0.05
+    snapshot["wall_us"] += 50000
+    device = snapshot["devices"]["2"]
+    device["processes"]["91"] = 10485760
+    device.update(process_event_status=6, events=[])
+    guard.validate(snapshot, [identities[90]])
+    device["aggregate"]["1"].extend([[19950000, 1], [20000000, 0]])
+    with pytest.raises(AdmissionError, match="busy device attribution missing"):
+        guard.validate(snapshot, [identities[90]])

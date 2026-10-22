@@ -195,3 +195,127 @@
   mode: unattended
   at: '2026-10-22T08:21:21.564300+00:00'
   receipt_id: r-301b13e7191bcf751cf66a8f
+- gate: A
+  actor: researcher
+  verdict: approve
+  reason: The hypothesis and scientific campaign remain unchanged. The narrowly monitored
+    inactive-context correction applies only to pilots/training; evaluation, rendering
+    and timing retain zero-foreign-context admission. Third-fingerprint counters preserve
+    history without granting extra scientific execution or GPU budget.
+  risk: Telemetry gaps, foreign activity or identity changes can block or interrupt
+    attempts. Read-only observations establish feasibility, not correctness of the
+    unfinished implementation.
+  next_action: Finish the bounded admission implementation and negative-case tests;
+    submit exact source at B and commands at C before any GPU dispatch.
+  evidence:
+  - research/rwm-discrete-flow/hypothesis.yaml
+  - research/rwm-discrete-flow/workflow.yaml
+  - logs/queue/rwm-discrete-flow/training_admission.verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+  workflow_id: w-52b79659fa77269d6072b2e5
+  mode: unattended
+  at: '2026-10-22T08:47:51.166413+00:00'
+  receipt_id: r-aac21626bedda2afa6d96ce5
+- gate: B
+  actor: researcher
+  verdict: reject
+  reason: The guard accepts a busy device with foreign contexts and live owned work
+    when its process sensor returns NOT_FOUND and no events. Aggregate load then lacks
+    valid attribution; fresh controls on other GPUs do not resolve it.
+  risk: Missing busy-device attribution could conceal foreign activity. Idle read-only
+    traces do not exercise this case.
+  next_action: Require fresh supported process attribution during device activity;
+    reject missing or stale owned heartbeat. Add regressions and resubmit B before
+    dispatch.
+  evidence:
+  - src/research_workflow/gpu_admission.py
+  - tests/test_research_gpu_admission.py
+  - logs/queue/rwm-discrete-flow/training_admission.busy_sensor_failure.reproduction.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-949fac1610d746de1c443888
+    prior_receipts:
+      A: r-aac21626bedda2afa6d96ce5
+  workflow_id: w-52b79659fa77269d6072b2e5
+  mode: unattended
+  at: '2026-10-22T08:53:08.911154+00:00'
+  receipt_id: r-9abea4ff02c07c158c346b98
+- gate: B
+  actor: researcher
+  verdict: reject
+  reason: The repaired guard accepts newly buffered aggregate activity followed by
+    a zero sample when process events are absent. Checking only the latest sample
+    leaves an observed active interval without attribution; the original busy-device
+    regression is fixed.
+  risk: Brief foreign activity can escape detection between observations. Idle traces
+    and passing endpoint tests do not establish interval coverage.
+  next_action: Check every newly covered aggregate sample, require valid owned attribution
+    for activity, and add transient-activity regressions before renewed B.
+  evidence:
+  - src/research_workflow/gpu_admission.py
+  - tests/test_research_gpu_admission.py
+  - logs/queue/rwm-discrete-flow/training_admission.transient_activity.reproduction.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-238eb716e0335fe5aeaf17f1
+    prior_receipts:
+      A: r-aac21626bedda2afa6d96ce5
+  workflow_id: w-52b79659fa77269d6072b2e5
+  mode: unattended
+  at: '2026-10-22T09:04:32.829358+00:00'
+  receipt_id: r-8d79a406bf9de45a77bace9a
+- gate: B
+  actor: researcher
+  verdict: approve
+  reason: 'Both reproduced attribution gaps are repaired: newly observed active intervals
+    require fresh owned attribution, including activity followed by zero. Identity
+    and telemetry failures stop owned work; evaluation remains exclusive. Independent
+    admission tests pass without scientific source changes.'
+  risk: Live telemetry under training load remains unverified. Conservative heartbeat
+    requirements may invalidate technical pilots; no automatic retry is authorized.
+  next_action: Review exact guarded commands, remaining budget, attempt handling,
+    and clean-source launch at Gate C before any GPU dispatch.
+  evidence:
+  - src/research_workflow/gpu_admission.py
+  - tests/test_research_gpu_admission.py
+  - logs/queue/rwm-discrete-flow/training_admission.verification.json
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-c900f4642719dcc97a8965e6
+    prior_receipts:
+      A: r-aac21626bedda2afa6d96ce5
+  workflow_id: w-52b79659fa77269d6072b2e5
+  mode: unattended
+  at: '2026-10-22T09:12:17.641144+00:00'
+  receipt_id: r-66f4fdf8ee98da7d086062ad
+- gate: C
+  actor: researcher
+  verdict: approve
+  reason: Exact commands preserve sealed data, five pilots, ten matched full runs,
+    and carried limits. Training-only monitored admission fails closed; evaluation
+    remains exclusive. Full training requires verified pilots and forecast plus five
+    GPU-hours reserved evaluation within the remaining ceiling.
+  risk: Busy-load telemetry feasibility remains unverified; guard failures invalidate
+    attempts and stop progression. Two seeds support descriptive engineering conclusions
+    only.
+  next_action: Record receipt, commit/push exact reviewed files, archive bindings,
+    then run only train/evaluate/render/publish sequentially. Stop on failures; no
+    automatic retry or follow-up.
+  evidence:
+  - research/rwm-discrete-flow/protocol.yaml
+  - logs/queue/rwm-discrete-flow/executable_jobs.admission.final.proposal.json#sha256=8d2575e9edf1723d5a66c443a2b52393feeab9f2c72bf47660131bb4d6b659f3
+  - logs/queue/rwm-discrete-flow/host_launch_binding.admission.proposal.json#sha256=37a29637e81231a044c9632f1deae3111b85c9c1d11fa8ebd3b543f8ac88df47
+  subjects:
+    hypothesis_id: h-435b4ef6f88ea8842ee6f0c9
+    implementation_id: i-c900f4642719dcc97a8965e6
+    protocol_id: p-27297613cb0bba599e5cc7c3
+    prior_receipts:
+      A: r-aac21626bedda2afa6d96ce5
+      B: r-66f4fdf8ee98da7d086062ad
+  workflow_id: w-52b79659fa77269d6072b2e5
+  reserved_training_units: 420000
+  reserved_evaluation_units: 200000
+  mode: unattended
+  at: '2026-10-22T09:16:20.470112+00:00'
+  receipt_id: r-5535eec41e8ef8055ebc0e03

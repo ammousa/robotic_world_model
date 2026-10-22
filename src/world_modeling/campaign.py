@@ -231,8 +231,20 @@ def train(protocol, rr, env, budget):
         )
         for variant, spec in protocol["variants"].items()
     ]
+    # This opt-in guard never applies to scoring, simulator shadow, rendering or timing.
+    # Evaluation keeps run_queue's stock zero-foreign-context admission unchanged.
+    admission = None
+    if context_settings := settings.get("training_context_admission"):
+        from research_workflow.gpu_admission import TrainingAdmission
+
+        admission = TrainingAdmission(
+            context_settings, protocol["compute_pool"], trace=Path(budget["log_root"]) / "training-admission.jsonl.gz"
+        )
+        admission.wait_for_quiet()  # Read-only support/coverage check before pinning or launching.
     tag = rr.pin_launch(protocol["group"], "train")
     scratch = Path(budget["log_root"])
+    if admission is not None:
+        admission.previous = None  # Recheck full buffered quiet history after Git/network work.
     if rr.run_queue(
         smoke,
         protocol["compute_pool"],
@@ -240,6 +252,7 @@ def train(protocol, rr, env, budget):
         env=env,
         launch_tag=tag,
         gpu_budget={**budget, "max_job_seconds": 900},
+        training_admission=admission,
     ):
         raise RuntimeError("technical pilot failed; no full training launched")
     evidence = rr.check_smoke_gate(smoke, protocol, scratch / "smoke", commit=rr.git_source()["commit"])
@@ -264,7 +277,24 @@ def train(protocol, rr, env, budget):
     )
     if spent + estimated_full + settings["evaluation_reserve_GPU_hours"] * 3600 > capacity:
         raise RuntimeError("pilot cost forecast exceeds authorized campaign ceiling; no partial full campaign launched")
-    if rr.run_queue(jobs, protocol["compute_pool"], scratch / "train", env=env, launch_tag=tag, gpu_budget=budget):
+    if admission is not None:
+        # Pilot verification is CPU work and can exceed a sampling period. Start a
+        # new quiet-window preflight for the separately admitted full-run queue.
+        admission = TrainingAdmission(
+            context_settings,
+            protocol["compute_pool"],
+            trace=Path(budget["log_root"]) / "training-admission-full.jsonl.gz",
+        )
+        admission.wait_for_quiet()
+    if rr.run_queue(
+        jobs,
+        protocol["compute_pool"],
+        scratch / "train",
+        env=env,
+        launch_tag=tag,
+        gpu_budget=budget,
+        training_admission=admission,
+    ):
         raise RuntimeError("full dynamics training failed; preserve failed attempts")
     for job in jobs:
         directory, errors = rr.find_run_dir(ROOT / "logs/rsl_rl/anymal_d_world_model", job["name"])

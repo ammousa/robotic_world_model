@@ -803,6 +803,15 @@ def _fail_fast_on_stale_retry(job: dict) -> None:
         raise SystemExit(str(error)) from error
 
 
+def admission_poll(jobs, allow_shared, training_admission, poll):
+    """An opt-in observation guard cannot relax scoring or shared-activity restrictions."""
+    if training_admission is not None:
+        if allow_shared or any(job.get("research", {}).get("job_type") not in {"train", "smoke"} for job in jobs):
+            raise ValueError("inactive-context admission is training/pilot-only and cannot allow shared GPU activity")
+        poll = min(poll, training_admission.settings["poll_seconds"])
+    return poll
+
+
 def run_queue(
     jobs: list[dict],
     pool: Sequence[int],
@@ -814,7 +823,9 @@ def run_queue(
     env: dict | None = None,
     launch_tag: str | None = None,
     gpu_budget: dict | None = None,
+    training_admission=None,
 ) -> int:
+    poll = admission_poll(jobs, allow_shared, training_admission, poll)
     names = [job["name"] for job in jobs]
     if len(names) != len(set(names)):
         raise ValueError("duplicate queue job names; every child must have a unique identity")
@@ -844,6 +855,7 @@ def run_queue(
                 raise SystemExit(str(error)) from error
     pending, running, failures, waiting_note = list(jobs), {}, 0, None
     dispatch_error = None
+    owned_identities = {}
     while pending or running:
         for name, (process, gpu, handle) in list(running.items()):
             code = process.poll()
@@ -853,7 +865,23 @@ def run_queue(
                 print(f"[{now()}] exit  {name} gpu={gpu} returncode={code}", flush=True)
                 failures += code != 0
                 del running[name]
-        foreign = set() if allow_shared or not pending else occupancy()
+                owned_identities.pop(name, None)
+        if not pending and not running:
+            break
+        if training_admission is not None:
+            try:
+                foreign = training_admission.check(list(owned_identities.values()))
+            except Exception as error:
+                dispatch_error = str(error)
+                _event(log_dir, event="isolation_failed", reason=dispatch_error, pending=[j["name"] for j in pending])
+                pending.clear()
+                for name, expected in owned_identities.items():
+                    result = stop_process(expected)
+                    _event(log_dir, event="owned_isolation_stop", name=name, result=result)
+                training_admission = None
+                foreign = set(pool)
+        else:
+            foreign = set() if allow_shared or not pending else occupancy()
         if foreign is None:
             raise SystemExit("cannot query GPU use with nvidia-smi; pass --allow-shared-gpu to skip the check")
         ours = {gpu for _, gpu, _ in running.values()}
@@ -890,8 +918,9 @@ def run_queue(
                 argv, cwd=ROOT, env={**child_env, "RESEARCH_METADATA": json.dumps(job.get("research", {})), "RESEARCH_GPU": str(gpu), **({"WANDB_JOB_TYPE": job["research"]["job_type"]} if job.get("research") else {})}, stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
                 start_new_session=True,
             )  # fmt: skip
+            owned_identities[job["name"]] = identity(process.pid)
             _event(log_dir, event="start", name=job["name"], gpu=gpu, argv=argv, source=source,
-                   identity=identity(process.pid), research=job.get("research", {}))  # fmt: skip
+                   identity=owned_identities[job["name"]], research=job.get("research", {}))  # fmt: skip
             print(f"[{now()}] start {job['name']} gpu={gpu} pid={process.pid}", flush=True)
             running[job["name"]] = (process, gpu, handle)
             pending.remove(job)

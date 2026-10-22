@@ -125,3 +125,55 @@ campaign_tooling:
   review_history: Previous renewed B rejected duplicate scoring identities under i-88f814043ecf68940db02536; actual
     rejection receipt retained. Repair changes no numerical/scientific settings and consumes no C reservation before
     first approval.
+  training_admission:
+    scope: Optional training/pilot-only guard; default queue and ALL evaluation/rendering/timing unchanged. No model/optimizer/data/loss/seed/metric
+      changes.
+    source:
+    - src/research_workflow/gpu_admission.py
+    - scripts/research_runs.py
+    - src/world_modeling/campaign.py
+    runtime: Read-only NVML API. Initial>=10s buffered zero SM/memory; exact identity/UUID/primary command/context-memory
+      binding; 50ms requested observation, actual200ms driver sample period. Supported process no-events remain
+      absent. Max350ms sensor gap, max600ms sample age, max150ms observed poll gap; stale/error/unknown/nonzero/memory-growth
+      stops only owned identity-matched process groups. Raw trace retained compressed. Positive-control identities/sensors
+      validated continuously.
+    CPU_trace:
+      passed: true
+      observations: 1196
+      elapsed_seconds: 60.015227457974106
+      trace_sha256: 6e969c9374c6e1a90e07c6b37d9136091aad2bac7a4f4899bf6fac517319f421
+      proposal_sha256: 19f84c2e3a12a18ccd7ad86f14a905abb7f17bee14c62193affd1333ea0808b4
+      GPU_jobs: 0
+      notes: Read-only NVML. Missing process events retained as absent, never zero-filled; no foreign signals; 50ms
+        requested poll is not sensor resolution.
+    verification: Synthetic adversarial activity/unknown identity/PID reuse/memory growth/error/gap/control/staleness
+      plus real CPU-only owned-process stop. No foreign signal or GPU context created.
+    historical_budget_result: Existing budget_result is original first-pool historical verification only. Current
+      resource authority and closed-ledger carry are protocol.v2.yaml plus current protocol, unchanged by this guard.
+    CPU_verification:
+      regression_tests_passed: 324
+      warning: One existing matplotlib open-figure warning in comparison template.
+      hooks: All applicable changed-file hooks pass.
+      failures_preserved: An initial literal pytest glob invocation exited4 without tests; corrected shell-expanded
+        complete suite passed. Initial formatting/complexity hooks required only extraction/formatting, then passed.
+      control_retirement: A bound process that has removed all pool contexts needs no exemption/positive control;
+        all new identities still rejected. Preserve its final actually observed zero event without fabricating absent
+        values.
+    review_history:
+      rejected_implementation: i-949fac1610d746de1c443888
+      actual_rejection_receipt: r-9abea4ff02c07c158c346b98
+      defect: NOT_FOUND/empty per-device process events could pass while owned GPU busy despite healthy controls
+        elsewhere. Exact rejected source preserved in queue scratch and to be attached as evidence.
+      repair: Require rc0/nonempty fresh per-device owned heartbeat under owned context or aggregate activity; absent
+        events only inactive covered device. Add missing6/empty0/stale/missingowned-row regressions. No GPU dispatch
+        or scientific change.
+    transient_activity_review:
+      rejected_implementation: i-238eb716e0335fe5aeaf17f1
+      actual_receipt: r-8d79a406bf9de45a77bace9a
+      defect: An activity burst followed by zero escaped endpoint-only aggregate checking.
+      repair: Require actual fresh owned heartbeat for EACH newly covered active interval of both aggregate kinds,
+        including revised active readings at prior timestamps. Do not re-trigger unchanged already attributed historical
+        activity. Add exact burst-then-zero and historical-control regressions. Preserve original missing-busy-attribution
+        tests.
+      tests: 324 passed, one pre-existing figure warning. Initial full transient suite exposed that a revised previously
+        observed sample also requires attribution; preserved failure and repaired without weakening assertion.
